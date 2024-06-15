@@ -55,6 +55,7 @@ def cash_income(project_id):
 def inject_forms():
     if current_user.is_authenticated:
         select_project_form = SelectProjectForm()
+        projects = Project.query.filter_by(owner=current_user).all()
         select_project_form.project.choices = [(p.id, p.name) for p in Project.query.filter(Project.owner.has(id=current_user.id)).all()]
         current_project = g.current_project  # Use g.current_project
         return dict(select_project_form=select_project_form, current_project=current_project, projects=current_user.projects)
