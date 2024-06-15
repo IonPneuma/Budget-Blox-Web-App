@@ -5,12 +5,15 @@ from budgetblox.config import Config
 from budgetblox.extensions import db, bcrypt, login_manager, mail, csrf
 from budgetblox.models import Project
 from flask_login import current_user
+from flask_migrate import Migrate
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
+    migrate = Migrate()
+    migrate.init_app(app, db)
     bcrypt.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)

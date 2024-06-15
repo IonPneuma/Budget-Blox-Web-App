@@ -34,49 +34,13 @@ def cash_income(project_id):
     income_form = IncomeForm()
     expense_form = ExpenseForm()
 
-    # Define the currency choices
-    currency_choices = [
-        ('€', 'EUR', 'Euro'),
-        ('$', 'USD', 'United States dollar'),
-        ('$', 'AUD', 'Australian dollar'),
-        ('£', 'GBP', 'Sterling'),
-        ('$', 'XCD', 'Eastern Caribbean dollar'),
-        ('F.CFA', 'XOF', 'West African CFA franc'),
-        ('$', 'NZD', 'New Zealand dollar'),
-        ('kr', 'NOK', 'Norwegian krone'),
-        ('F.CFA', 'XAF', 'Central African CFA franc'),
-        ('R', 'ZAR', 'South African rand'),
-        ('₣', 'XPF', 'CFP franc'),
-        ('$', 'CLP', 'Chilean peso'),
-        ('kr', 'DKK', 'Danish krone'),
-        ('₹', 'INR', 'Indian rupee'),
-        ('₽', 'RUB', 'Russian rouble'),
-        ('₺', 'TRY', 'Turkish lira'),
-        ('DA', 'DZD', 'Algerian dinar'),
-        ('UM', 'MRU', 'Mauritanian ouguiya'),
-        ('DH', 'MAD', 'Moroccan dirham'),
-        ('₪', 'ILS', 'Israeli new shekel'),
-        ('د.أ', 'JOD', 'Jordanian dinar'),
-        ('B$', 'BND', 'Brunei dollar'),
-        ('S$', 'SGD', 'Singapore dollar'),
-        ('元', 'HKD', 'Hong Kong dollar'),
-        ('Fr', 'CHF', 'Swiss franc'),
-        ('NAƒ', 'ANG', 'Netherlands Antillean guilder'),
-        ('£', 'SHP', 'Saint Helena pound'),
-        ('£', 'FKP', 'Falkland Islands pound'),
-        ('$', 'CAD', 'Canadian Dollar')
-        # Add more currencies as needed
-    ]
-    income_form.currency.choices = currency_choices
-
-
     if income_form.validate_on_submit():
         income = Income(
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
             currency=income_form.currency.data,
-            project_id=project.id  # Add currency data
+            project_id=project.id
         )
         db.session.add(income)
         db.session.commit()

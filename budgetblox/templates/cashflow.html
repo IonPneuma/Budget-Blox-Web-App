@@ -122,8 +122,8 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>{{ income.title_income }}</td>
-                            <td>{{ income.format_amount() }}</td>
-                            <td>{{ income.amount_income }}</td>
+                            <td>{{ format_currency(income.amount_income, income.currency) }}</td>
+                            <td>{{ income.date_income.strftime('%d-%m-%Y') }}</td>
                             <td>{{ income.date_income }}</td>
                         </tr>
                     {% endfor %}
@@ -223,8 +223,8 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>{{ expense.title_expense }}</td>
-                            <td>{{ expense.format_amount() }}</td>
-                            <td>{{ expense.amount_expense }}</td>
+                            <td>{{ format_currency(expense.amount_expense, expense.currency) }}</td>
+                            <td>{{ expense.date_expense.strftime('%d-%m-%Y') }}</td>
                             <td>{{ expense.date_expense }}</td>
                         </tr>
                     {% endfor %}
@@ -273,8 +273,7 @@
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>{{ income.title_income }}</td>
-                                    <td>{{ income.format_amount() }}</td>
-                                    <td>{{ income.amount_income }}</td>
+                                    <td>{{ format_currency(income.amount_income, income.currency) }}</td>
                                     <td>{{ income.date_income }}</td>
                                 </tr>
                             {% endfor %}
@@ -325,8 +324,7 @@
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>{{ expense.title_expense }}</td>
-                                    <td>{{ expense.format_amount() }}</td>
-                                    <td>{{ expense.amount_expense }}</td>
+                                    <td>{{ format_currency(expense.amount_expense, expense.currency) }}</td>
                                     <td>{{ expense.date_expense }}</td>
                                 </tr>
                             {% endfor %}

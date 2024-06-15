@@ -51,7 +51,7 @@ class Income(db.Model):
     amount_income = db.Column(db.Float, nullable=False)
     date_income = db.Column(db.Date, nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    currency = db.Column(db.String(3), nullable=False, default='GBP')
+    currency = db.Column(db.String(10), nullable=False, default='GBP')
 
     def format_amount(self):
         return format_currency(self.amount_income, self.currency)
@@ -74,6 +74,7 @@ class Expense(db.Model):
     title_expense = db.Column(db.String(100), nullable=False)
     amount_expense = db.Column(db.Float, nullable=False)
     date_expense = db.Column(db.Date, nullable=False)
+    currency = db.Column(db.String(10), nullable=False, default='GBP')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
 
     def to_dict(self):
