@@ -41,5 +41,3 @@ def create_app(config_class=Config):
                 g.current_project = Project.query.filter_by(id=project_id, owner=current_user).first()
             else:
                 g.current_project = Project.query.filter_by(owner=current_user).first()
-
-    return app

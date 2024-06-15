@@ -32,7 +32,7 @@ def dashboard():
 def cash_income(project_id):
     project = Project.query.get_or_404(project_id)
     income_form = IncomeForm()
-    expense_form = ExpenseForm()  # Assuming you also want to pass an ExpenseForm
+    expense_form = ExpenseForm()
 
     if income_form.validate_on_submit():
         income = Income(
@@ -46,9 +46,17 @@ def cash_income(project_id):
         flash('Income added successfully!', 'success')
         return redirect(url_for('finData.cash_income', project_id=project.id))
 
-    incomes = [income.to_dict() for income in Income.query.filter_by(project_id=project.id).all()]
-    expenses = [expense.to_dict() for expense in Expense.query.filter_by(project_id=project.id).all()]
-    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=incomes, expenses=expenses, project=project)
+    incomes = Income.query.filter_by(project_id=project.id).all()
+    expenses = Expense.query.filter_by(project_id=project.id).all()
+
+    return render_template(
+        'cashflow.html', title='Cash',
+        income_form=income_form,
+        expense_form=expense_form,
+        incomes=[income.to_dict() for income in incomes],
+        expenses=[expense.to_dict() for expense in expenses],
+        project=project
+    )
 
 
 @finData.context_processor

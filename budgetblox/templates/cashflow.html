@@ -335,8 +335,11 @@
 <!-- Ensure JSON data is properly formatted -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const incomeData = { income,tojson,safe };
-    const expenseData = { expenses,tojson,safe };
+    const incomeData = JSON.parse('{{ incomes|tojson|safe }}');
+    const expenseData = JSON.parse('{{ expenses|tojson|safe }}');
+
+// Use these variables to create your charts
+
 
     const incomeAmounts = incomeData.map(income => income.amount_income);
     const expenseAmounts = expenseData.map(expense => expense.amount_expense);

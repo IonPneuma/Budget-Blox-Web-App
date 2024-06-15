@@ -55,7 +55,8 @@ class Income(db.Model):
             'id': self.id,
             'title_income': self.title_income,
             'amount_income': self.amount_income,
-            'date_income': self.date_income.strftime('%Y-%m-%d')
+            'date_income': self.date_income.strftime('%Y-%m-%d'),
+            'project_id': self.project_id
         }
 
     def __repr__(self):
@@ -73,7 +74,8 @@ class Expense(db.Model):
             'id': self.id,
             'title_expense': self.title_expense,
             'amount_expense': self.amount_expense,
-            'date_expense': self.date_expense.strftime('%Y-%m-%d')
+            'date_expense': self.date_expense.strftime('%Y-%m-%d'),
+            'project_id': self.project_id
         }
 
     def __repr__(self):
