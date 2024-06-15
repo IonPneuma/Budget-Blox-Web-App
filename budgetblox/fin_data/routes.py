@@ -27,26 +27,14 @@ def dashboard():
     expense_form = ExpenseForm()
     return render_template('dashboard.html', title='Dashboard', project=project, projects=projects, income_form=income_form, expense_form=expense_form)
 
-@finData.route("/cashflow", methods=['GET', 'POST'])
+@finData.route("/cashflow/<int:project_id>", methods=['GET', 'POST'])
 @login_required
-def cash_income():
-    selected_project_id = session.get('selected_project_id')
-    if selected_project_id:
-        project = db.session.query(Project).filter_by(id=selected_project_id, user_id=current_user.id).first()
-        if project is None:
-            flash('Project not found or unauthorized action.', 'danger')
-            return redirect(url_for('finData.create_project'))
-    else:
-        project = Project.query.filter_by(owner=current_user).first()
-        if project is None:
-            flash('No project found. Please create a project.', 'danger')
-            return redirect(url_for('finData.create_project'))
-        session['selected_project_id'] = project.id
-
+def cash_income(project_id):
+    project = Project.query.get_or_404(project_id)
     income_form = IncomeForm()
-    expense_form = ExpenseForm()
+    expense_form = ExpenseForm()  # Assuming you also want to pass an ExpenseForm
 
-    if income_form.validate_on_submit() and 'submit_income' in request.form:
+    if income_form.validate_on_submit():
         income = Income(
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
@@ -56,25 +44,11 @@ def cash_income():
         db.session.add(income)
         db.session.commit()
         flash('Income added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
+        return redirect(url_for('finData.cash_income', project_id=project.id))
 
-    if expense_form.validate_on_submit() and 'submit_expense' in request.form:
-        expense = Expense(
-            title_expense=expense_form.title_expense.data,
-            amount_expense=expense_form.amount_expense.data,
-            date_expense=expense_form.date_expense.data,
-            project_id=project.id
-        )
-        db.session.add(expense)
-        db.session.commit()
-        flash('Expense added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
-
-    incomes = Income.query.filter_by(project_id=project.id).all()
-    expenses = Expense.query.filter_by(project_id=project.id).all()
-
-    return render_template('cashflow.html', title='Cash Flow', income_form=income_form, expense_form=expense_form, incomes=incomes, expenses=expenses, project=project)
-
+    incomes = [income.to_dict() for income in Income.query.filter_by(project_id=project.id).all()]
+    expenses = [expense.to_dict() for expense in Expense.query.filter_by(project_id=project.id).all()]
+    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=incomes, expenses=expenses, project=project)
 
 
 @finData.context_processor

@@ -1,8 +1,8 @@
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from budgetblox import db, login_manager
-from flask_login import UserMixin
 from flask import current_app
+from flask_login import UserMixin
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -58,6 +58,9 @@ class Income(db.Model):
             'date_income': self.date_income.strftime('%Y-%m-%d')
         }
 
+    def __repr__(self):
+        return f"Income('{self.title_income}', '{self.amount_income}', Project ID: '{self.project_id}')"
+
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title_expense = db.Column(db.String(100), nullable=False)
@@ -72,3 +75,6 @@ class Expense(db.Model):
             'amount_expense': self.amount_expense,
             'date_expense': self.date_expense.strftime('%Y-%m-%d')
         }
+
+    def __repr__(self):
+        return f"Expense('{self.title_expense}', '{self.amount_expense}', Project ID: '{self.project_id}')"
