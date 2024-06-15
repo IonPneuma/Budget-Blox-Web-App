@@ -1,19 +1,10 @@
-from flask import Flask, g, request, current_app, session
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, current_user
-from flask_wtf.csrf import CSRFProtect
-from flask_mail import Mail
-from budgetblox.config import Config
-from budgetblox.models import Project
+# budgetblox/__init__.py
 
-db = SQLAlchemy()
-bcrypt = Bcrypt()
-login_manager = LoginManager()
-login_manager.login_view = 'users.login'
-login_manager.login_message_category = 'info'
-mail = Mail()
-csrf = CSRFProtect()
+from flask import Flask, g, request, current_app
+from budgetblox.config import Config
+from budgetblox.extensions import db, bcrypt, login_manager, mail, csrf
+from budgetblox.models import Project
+from flask_login import current_user
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -41,3 +32,5 @@ def create_app(config_class=Config):
                 g.current_project = Project.query.filter_by(id=project_id, owner=current_user).first()
             else:
                 g.current_project = Project.query.filter_by(owner=current_user).first()
+
+    return app

@@ -2,6 +2,7 @@ from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from budgetblox import db, login_manager
 from flask import current_app
+from budgetblox.extensions import db, login_manager
 from flask_login import UserMixin
 
 @login_manager.user_loader
