@@ -39,7 +39,8 @@ def cash_income(project_id):
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
-            project_id=project.id
+            project_id=project.id,
+            currency=income_form.currency.data  # Add currency data
         )
         db.session.add(income)
         db.session.commit()
@@ -48,16 +49,7 @@ def cash_income(project_id):
 
     incomes = Income.query.filter_by(project_id=project.id).all()
     expenses = Expense.query.filter_by(project_id=project.id).all()
-
-    return render_template(
-        'cashflow.html', title='Cash',
-        income_form=income_form,
-        expense_form=expense_form,
-        incomes=[income.to_dict() for income in incomes],
-        expenses=[expense.to_dict() for expense in expenses],
-        project=project
-    )
-
+    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=incomes, expenses=expenses, project=project)
 
 @finData.context_processor
 def inject_forms():

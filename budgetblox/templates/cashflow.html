@@ -62,6 +62,10 @@
                     {% endif %}
                 </div>
                 <div class="col-sm-6">
+                    {{ income_form.currency.label(class="form-control-label") }}
+                    {{ income_form.currency(class="form-control form-control-lg") }}
+                </div>
+                <div class="col-sm-6">
                     {{ income_form.date_income.label(class="form-control-label") }}
                     {% if income_form.date_income.errors %}
                         {{ income_form.date_income(class="form-control form-control-lg is-invalid") }}
@@ -118,6 +122,7 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>{{ income.title_income }}</td>
+                            <td>{{ income.format_amount() }}</td>
                             <td>{{ income.amount_income }}</td>
                             <td>{{ income.date_income }}</td>
                         </tr>
@@ -162,6 +167,10 @@
                     {% else %}
                         {{ expense_form.amount_expense(class="form-control form-control-lg") }}
                     {% endif %}
+                </div>
+                <div class="col-sm-6">
+                    {{ expense_form.currency.label(class="form-control-label") }}
+                    {{ expense_form.currency(class="form-control form-control-lg") }}
                 </div>
                 <div class="col-sm-6">
                     {{ expense_form.date_expense.label(class="form-control-label") }}
@@ -214,6 +223,7 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>{{ expense.title_expense }}</td>
+                            <td>{{ expense.format_amount() }}</td>
                             <td>{{ expense.amount_expense }}</td>
                             <td>{{ expense.date_expense }}</td>
                         </tr>
@@ -263,6 +273,7 @@
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>{{ income.title_income }}</td>
+                                    <td>{{ income.format_amount() }}</td>
                                     <td>{{ income.amount_income }}</td>
                                     <td>{{ income.date_income }}</td>
                                 </tr>
@@ -314,6 +325,7 @@
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>{{ expense.title_expense }}</td>
+                                    <td>{{ expense.format_amount() }}</td>
                                     <td>{{ expense.amount_expense }}</td>
                                     <td>{{ expense.date_expense }}</td>
                                 </tr>

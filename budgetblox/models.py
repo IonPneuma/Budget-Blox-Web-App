@@ -4,6 +4,7 @@ from budgetblox import db, login_manager
 from flask import current_app
 from budgetblox.extensions import db, login_manager
 from flask_login import UserMixin
+from babel.numbers import format_currency
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -50,6 +51,11 @@ class Income(db.Model):
     amount_income = db.Column(db.Float, nullable=False)
     date_income = db.Column(db.Date, nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    currency = db.Column(db.String(3), nullable=False, default='GBP')
+
+    def format_amount(self):
+        return format_currency(self.amount_income, self.currency)
+
 
     def to_dict(self):
         return {
