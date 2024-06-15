@@ -14,12 +14,7 @@ class IncomeForm(FlaskForm):
     title_income = StringField('Source', validators=[DataRequired()])
     amount_income = DecimalField('Amount', validators=[DataRequired()])
     date_income = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
-    currency = SelectField('Currency', choices=[
-        ('USD', 'US Dollar'),
-        ('EUR', 'Euro'),
-        ('GBP', 'British Pound'),
-        # Add more currencies as needed
-    ])
+    currency = SelectField('Currency', choices=[], validators=[DataRequired()])  # Placeholder for choices
     submit_income = SubmitField('Add')
 
 class ExpenseForm(FlaskForm):
