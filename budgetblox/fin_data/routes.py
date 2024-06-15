@@ -79,9 +79,8 @@ def create_project():
 @finData.route("/select_project/<int:project_id>")
 @login_required
 def select_project(project_id):
-    project = db.session.query(Project).filter_by(id=project_id, user_id=current_user.id).first()
+    project = db.session.get(Project, project_id)
     if project and project.owner == current_user:
-        session['selected_project_id'] = project.id
         flash(f'Selected project: {project.name}', 'success')
         return redirect(url_for('finData.dashboard', project_id=project.id))
     else:

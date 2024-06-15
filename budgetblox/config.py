@@ -8,4 +8,4 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'aviopneuma@gmail.com'
-    MAIL_PASSWORD = "ftpaiqmftpktbjda"
+    MAIL_PASSWORD = "XXXXXXXXXXXXXXXX"
