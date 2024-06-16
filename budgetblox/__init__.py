@@ -1,19 +1,25 @@
-# budgetblox/__init__.py
-
-from flask import Flask, g, request, current_app
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail
 from budgetblox.config import Config
-from budgetblox.extensions import db, bcrypt, login_manager, mail, csrf
-from budgetblox.models import Project
-from flask_login import current_user
-from flask_migrate import Migrate
+from budgetblox.utils import format_currency
+
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+login_manager = LoginManager()
+login_manager.login_view = 'users.login'
+login_manager.login_message_category = 'info'
+mail = Mail()
+csrf = CSRFProtect()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
-    migrate = Migrate()
-    migrate.init_app(app, db)
     bcrypt.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
@@ -27,13 +33,7 @@ def create_app(config_class=Config):
     app.register_blueprint(finData)
     app.register_blueprint(main)
 
-    @app.before_request
-    def set_current_project():
-        if current_user.is_authenticated:
-            project_id = request.args.get('project_id')
-            if project_id:
-                g.current_project = Project.query.filter_by(id=project_id, owner=current_user).first()
-            else:
-                g.current_project = Project.query.filter_by(owner=current_user).first()
+    # Register format_currency filter
+    app.jinja_env.filters['format_currency'] = format_currency
 
     return app

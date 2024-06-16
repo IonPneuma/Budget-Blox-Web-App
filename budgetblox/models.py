@@ -10,6 +10,7 @@ from babel.numbers import format_currency
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -21,6 +22,7 @@ class User(db.Model, UserMixin):
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(current_app.config['SECRET_KEY'])
         return s.dumps({'user_id': self.id}, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+    
 
     @staticmethod
     def verify_reset_token(token):

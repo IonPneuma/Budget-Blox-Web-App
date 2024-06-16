@@ -6,9 +6,7 @@ from flask_mail import Message
 from budgetblox import mail
 import locale
 
-def format_currency(value, currency='GBP'):
-    locale.setlocale(locale.LC_ALL, '')
-    return locale.currency(value, grouping=True)
+
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)

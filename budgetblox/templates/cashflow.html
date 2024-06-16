@@ -63,14 +63,23 @@
                 </div>
                 <div class="col-sm-6">
                     {{ income_form.currency.label(class="form-control-label") }}
-                    {{ income_form.currency(class="form-control form-control-lg") }}
+                    {% if income_form.currency.errors %}
+                        {{ income_form.currency(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in income_form.currency.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ income_form.currency(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
                 <div class="col-sm-6">
                     {{ income_form.date_income.label(class="form-control-label") }}
                     {% if income_form.date_income.errors %}
                         {{ income_form.date_income(class="form-control form-control-lg is-invalid") }}
                         <div class="invalid-feedback">
-                            {% for error in form.date_income.errors %}
+                            {% for error in income_form.date_income.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
@@ -84,6 +93,7 @@
                 <hr class="my-4">
             </div>
         </form>
+        
 
         <!-- Display the income data -->
         <h2>Income Records</h2>

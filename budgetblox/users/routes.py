@@ -18,7 +18,6 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        # Automatically create a default project for the user if no projects exist
         if Project.query.filter_by(owner=user).count() == 0:
             project = Project(name="Default Project", owner=user)
             db.session.add(project)
@@ -31,10 +30,7 @@ def register():
 def login():
     if current_user.is_authenticated:
         first_project = Project.query.filter_by(owner=current_user).first()
-        if first_project:
-            return redirect(url_for('finData.dashboard', project_id=first_project.id))
-        else:
-            return redirect(url_for('finData.create_project'))
+        return redirect(url_for('finData.dashboard', project_id=first_project.id if first_project else 1))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -44,14 +40,10 @@ def login():
             if next_page:
                 return redirect(next_page)
             first_project = Project.query.filter_by(owner=current_user).first()
-            if first_project:
-                return redirect(url_for('finData.dashboard', project_id=first_project.id))
-            else:
-                return redirect(url_for('finData.create_project'))
+            return redirect(url_for('finData.dashboard', project_id=first_project.id if first_project else 1))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
-
 
 @users.route("/logout")
 def logout():
