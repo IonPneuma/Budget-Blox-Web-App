@@ -7,26 +7,16 @@ from datetime import datetime, date
 
 finData = Blueprint('finData', __name__)
 
-@finData.route("/dashboard")
+@finData.route("/dashboard/<int:project_id>")
 @login_required
-def dashboard():
-    selected_project_id = session.get('selected_project_id')
-    if selected_project_id:
-        project = db.session.query(Project).filter_by(id=selected_project_id, user_id=current_user.id).first()
-        if project is None:
-            flash('Project not found or unauthorized action.', 'danger')
-            return redirect(url_for('finData.create_project'))
-    else:
-        project = Project.query.filter_by(owner=current_user).first()
-        if project is None:
-            flash('No project found. Please create a project.', 'danger')
-            return redirect(url_for('finData.create_project'))
-        session['selected_project_id'] = project.id
-
+def dashboard(project_id):
+    current_app.logger.info(f"Dashboard route accessed with project_id: {project_id}")
+    project = Project.query.get(project_id)
+    if project is None:
+        current_app.logger.error(f"No project found with project_id: {project_id}")
+        return render_template('404.html'), 404
     projects = Project.query.filter_by(owner=current_user).all()
-    income_form = IncomeForm()
-    expense_form = ExpenseForm()
-    return render_template('dashboard.html', title='Dashboard', project=project, projects=projects, income_form=income_form, expense_form=expense_form)
+    return render_template('dashboard.html', title='Dashboard', project=project, projects=projects)
 
 @finData.route("/cashflow/<int:project_id>", methods=['GET', 'POST'])
 @login_required
@@ -41,7 +31,7 @@ def cash_income(project_id):
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
             project_id=project.id,
-            currency=income_form.currency.data  # Ensure this line is present if you have a currency field
+            currency=income_form.currency.data
         )
         db.session.add(income)
         db.session.commit()
@@ -54,7 +44,7 @@ def cash_income(project_id):
     income_data = [{
         'title_income': income.title_income,
         'amount_income': income.amount_income,
-        'date_income': income.date_income.strftime('%Y-%m-%d') if isinstance(income.date_income, datetime.date) else datetime.strptime(income.date_income, '%Y-%m-%d').strftime('%Y-%m-%d'),
+        'date_income': income.date_income.strftime('%Y-%m-%d'),
         'currency': income.currency
     } for income in incomes]
 

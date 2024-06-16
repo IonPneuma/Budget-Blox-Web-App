@@ -1,12 +1,10 @@
 from flask import Flask, g, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, current_user, login_required
+from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from budgetblox.config import Config
-from budgetblox.utils import format_currency
-from budgetblox.models import Project
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -25,6 +23,10 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+
+    with app.app_context():
+        from budgetblox.models import User, Project, Income, Expense
+        db.create_all()
 
     from budgetblox.users.routes import users
     from budgetblox.fin_data.routes import finData
@@ -45,8 +47,22 @@ def create_app(config_class=Config):
 
     return app
 
-    @app.context_processor
-    def utility_processor():
-        return dict(format_currency=format_currency)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-    return app
+def format_currency(value, currency):
+    if currency == 'USD':
+        return f"${value:,.2f}"
+    elif currency == 'EUR':
+        return f"€{value:,.2f}"
+    elif currency == 'GBP':
+        return f"£{value:,.2f}"
+    else:
+        return f"{value:,.2f} {currency}"
+
+def format_date(date_str):
+    from datetime import datetime
+    return datetime.strptime(date_str, '%Y-%m-%d').strftime('%d-%m-%Y')
+
+app.jinja_env.globals.update(format_currency=format_currency, format_date=format_date)
