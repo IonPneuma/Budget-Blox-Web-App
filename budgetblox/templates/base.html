@@ -257,10 +257,11 @@
                 </li>
                 <li class="nav-item">
                   {% if current_user.is_authenticated %}
-                      <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.cash_income', project_id=g.current_project.id if g.current_project else 1) }}">
-                          <svg class="bi"><use xlink:href="#wallet2" /></svg>
-                          Cash Flow
-                      </a>
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.cash_income', project_id=g.current_project.id) }}">
+                    <svg class="bi"><use xlink:href="#wallet2" /></svg>
+                    Cash Flow
+                  </a>
+                
                   {% endif %}
                 </li>
               

@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, SelectField, SubmitField, DateField
 from wtforms.validators import DataRequired
 
+
 class ProjectForm(FlaskForm):
     name = StringField('Project Name', validators=[DataRequired()])
     submit = SubmitField('Create Project')

@@ -3,6 +3,7 @@ from budgetblox import db
 from flask_login import login_user, current_user, logout_user, login_required
 from budgetblox.models import Income, Expense, Project
 from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, SelectProjectForm, ProjectForm, UpdateProjectForm
+from datetime import datetime, date
 
 finData = Blueprint('finData', __name__)
 
@@ -39,8 +40,8 @@ def cash_income(project_id):
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
-            currency=income_form.currency.data,
-            project_id=project.id
+            project_id=project.id,
+            currency=income_form.currency.data  # Ensure this line is present if you have a currency field
         )
         db.session.add(income)
         db.session.commit()
@@ -49,7 +50,17 @@ def cash_income(project_id):
 
     incomes = Income.query.filter_by(project_id=project.id).all()
     expenses = Expense.query.filter_by(project_id=project.id).all()
-    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=incomes, expenses=expenses, project=project)
+
+    income_data = [{
+        'title_income': income.title_income,
+        'amount_income': income.amount_income,
+        'date_income': income.date_income.strftime('%Y-%m-%d') if isinstance(income.date_income, datetime.date) else datetime.strptime(income.date_income, '%Y-%m-%d').strftime('%Y-%m-%d'),
+        'currency': income.currency
+    } for income in incomes]
+
+    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=income_data, expenses=expenses, project=project)
+
+
 
 @finData.context_processor
 def inject_forms():

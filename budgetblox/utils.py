@@ -1,9 +1,6 @@
-import locale
+# budgetblox/utils.py
 
-def format_currency(value, currency):
-    try:
-        locale.setlocale(locale.LC_ALL, '')
-        currency_value = locale.currency(value, grouping=True)
-    except:
-        currency_value = f"{value} {currency}"
-    return currency_value
+from babel.numbers import format_currency as babel_format_currency
+
+def format_currency(amount, currency_code):
+    return babel_format_currency(amount, currency_code)
