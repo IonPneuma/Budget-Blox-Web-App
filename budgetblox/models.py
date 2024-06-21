@@ -1,15 +1,13 @@
-from budgetblox.extensions import db, login_manager
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from budgetblox import db, login_manager
 from flask import current_app
 from flask_login import UserMixin
 from babel.numbers import format_currency
+from budgetblox import db
 
-@login_manager.user_loader
 def load_user(user_id):
+    from budgetblox import db, login_manager  # Local import to avoid circular import issues
     return User.query.get(int(user_id))
-
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,7 +21,6 @@ class User(db.Model, UserMixin):
         s = Serializer(current_app.config['SECRET_KEY'])
         return s.dumps({'user_id': self.id}, salt=current_app.config['SECURITY_PASSWORD_SALT'])
     
-
     @staticmethod
     def verify_reset_token(token):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -57,7 +54,6 @@ class Income(db.Model):
 
     def format_amount(self):
         return format_currency(self.amount_income, self.currency)
-
 
     def to_dict(self):
         return {
