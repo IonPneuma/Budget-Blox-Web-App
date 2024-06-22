@@ -39,16 +39,13 @@ def cash_income(project_id):
         return redirect(url_for('finData.cash_income', project_id=project.id))
 
     incomes = Income.query.filter_by(project_id=project.id).all()
-    expenses = Expense.query.filter_by(project_id=project.id).all()
+    income_data = [income.to_dict() for income in incomes]
+    
+    
+    expenses = Income.query.filter_by(project_id=project.id).all()
+    expense_data = [expense.to_dict() for expense in expenses]
 
-    income_data = [{
-        'title_income': income.title_income,
-        'amount_income': income.amount_income,
-        'date_income': income.date_income.strftime('%Y-%m-%d'),
-        'currency': income.currency
-    } for income in incomes]
-
-    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=income_data, expenses=expenses, project=project)
+    return render_template('cashflow.html', title='Cash', income_form=income_form, expense_form=expense_form, incomes=income_data, expenses=expense_data, project=project)
 
 
 

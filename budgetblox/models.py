@@ -36,7 +36,7 @@ class User(db.Model, UserMixin):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.datetime)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     incomes = db.relationship('Income', backref='project', lazy=True)
     expenses = db.relationship('Expense', backref='project', lazy=True)
@@ -60,7 +60,7 @@ class Income(db.Model):
             'id': self.id,
             'title_income': self.title_income,
             'amount_income': self.amount_income,
-            'date_income': self.date_income.strftime('%Y-%m-%d'),
+            'date_income': self.date_income.isoformat() if self.date_income else None,
             'project_id': self.project_id
         }
 
