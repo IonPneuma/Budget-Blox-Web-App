@@ -1,28 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">{{ project.name }}</h1>
-    <div class="btn-group">
-        <button
-            type="button"
-            class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-        >
-            <svg class="bi"><use xlink:href="#file text fill" /></svg>
-            Select project
-        </button>
-        <ul class="dropdown-menu">
-            {% for project in current_user.projects %}
-                <li>
-                    <a class="dropdown-item" href="{{ url_for('finData.select_project', project_id=project.id) }}">
-                        {{ project.name }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+
 
 <!-- Additional content can go here -->
 <div>

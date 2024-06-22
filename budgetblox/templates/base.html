@@ -229,7 +229,7 @@
         href="#"
         >{{ current_user.username }}</a
       >
-
+      
       
     </header>
 
@@ -250,14 +250,14 @@
             >
               <ul class="nav flex-column">
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.dashboard', project_id=current_project.id if current_project else 1) }}">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.dashboard') }}">
                     <svg class="bi"><use xlink:href="#house-fill" /></svg>
                     Dashboard
                 </a>
                 </li>
                 <li class="nav-item">
                   {% if current_user.is_authenticated %}
-                  <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.cash_income', project_id=g.current_project.id) }}">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for('finData.cash_income') }}">
                     <svg class="bi"><use xlink:href="#wallet2" /></svg>
                     Cash Flow
                   </a>
@@ -342,6 +342,24 @@
         </div>
         
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            
+            {% if current_user.is_authenticated and projects %}
+            <h1 class="h2">{{ current_project.name }}</h1>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1" type="button" id="projectDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg class="bi"><use xlink:href="#file text fill" /></svg>
+                    {{ current_project.name if current_project else 'Select project' }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="projectDropdown">
+                    {% for project in projects %}
+                    <li><a class="dropdown-item" href="{{ url_for('finData.select_project', project_id=project.id) }}">{{ project.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+          {% endif %}
+        </div>
+          
           {% block content %} {% endblock %}
         </main>
       </div>

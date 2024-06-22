@@ -1,409 +1,457 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">{{ project.name }}</h1>
-    <div class="btn-group">
-        <button
-            type="button"
-            class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-        >
-            <svg class="bi"><use xlink:href="#file text fill" /></svg>
-            Select project
-        </button>
-        <ul class="dropdown-menu">
-            {% for project in current_user.projects %}
-                <li>
-                    <a class="dropdown-item" href="{{ url_for('finData.select_project', project_id=project.id) }}">
-                        {{ project.name }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+{% extends "base.html" %} {% block content %}
 
 <!-- Chart canvas -->
 <canvas id="cashflowChart" width="400" height="200"></canvas>
 
 <div class="row g-5">
-    <div class="col-md-7 col-lg-8 border-cashflow">
-        <form method="POST" action="{{ url_for('finData.cash_income', project_id=project.id) }}">
-            {{ income_form.hidden_tag() }}
-            <div class="row g-3">
-                <h4 class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-primary">Income</span>
-                </h4>
-                <div class="col-sm-6">
-                    {{ income_form.title_income.label(class="form-control-label") }}
-                    {% if income_form.title_income.errors %}
-                        {{ income_form.title_income(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in income_form.title_income.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ income_form.title_income(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    {{ income_form.amount_income.label(class="form-control-label") }}
-                    {% if income_form.amount_income.errors %}
-                        {{ income_form.amount_income(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in income_form.amount_income.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ income_form.amount_income(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    {{ income_form.currency.label(class="form-control-label") }}
-                    {% if income_form.currency.errors %}
-                        {{ income_form.currency(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in income_form.currency.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ income_form.currency(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    {{ income_form.date_income.label(class="form-control-label") }}
-                    {% if income_form.date_income.errors %}
-                        {{ income_form.date_income(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in income_form.date_income.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ income_form.date_income(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="input-group">
-                    {{ income_form.submit_income(class="btn btn-secondary") }}
-                </div>
-                <hr class="my-4">
-            </div>
-        </form>
-        
-
-        <!-- Display the income data -->
-        <h2>Income Records</h2>
-        <div class="table-responsive small">
-            <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-                <symbol id="sort-icon" viewBox="0 0 16 16">
-                    <path d="M4 12L8 16l4-4H4zM12 4L8 0 4 4h8z"/>
-                </symbol>
-            </svg>
-            <table class="table table-striped table-sm" id="incomeTable">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col"  class="sortable-header" onclick="sortTable(1)">
-                            <svg class="bi"  width="18" height="18" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Income
-                        </th>
-                        <th scope="col"  class="sortable-header" onclick="sortTable(2)">
-                            <svg class="bi" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Amount
-                        </th>
-                        <th scope="col"  class="sortable-header" onclick="sortTable(3)">
-                            <svg class="bi" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Date
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for income in incomes[:8] %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ income.title_income }}</td>
-                            <td>{{ format_currency(income.amount_income, income.currency) }}</td>
-                            <td>{{ income.date_income }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if incomes|length > 8 %}
-                <button class="btn btn-primary" onclick="showAllIncomeRecords()">Show All Records</button>
-            {% endif %}
+  <div class="col-md-7 col-lg-8 border-cashflow">
+    <form
+      method="POST"
+      action="{{ url_for('finData.cash_income') }}"
+    >
+      {{ income_form.hidden_tag() }}
+      <div class="row g-3">
+        <h4 class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-primary">Income</span>
+        </h4>
+        <div class="col-sm-6">
+          {{ income_form.title_income.label(class="form-control-label") }} {% if
+          income_form.title_income.errors %} {{
+          income_form.title_income(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in income_form.title_income.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ income_form.title_income(class="form-control
+          form-control-lg") }} {% endif %}
         </div>
-    </div>
-    <div class="col-md-7 col-lg-8 border-cashflow">
-        <form method="POST" action="{{ url_for('finData.cash_income', project_id=project.id) }}">
-
-            {{ expense_form.hidden_tag() }}
-            <div class="row g-3">
-                <h2 class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-primary-expenses">Expenses</span>
-                </h2>
-                <div class="col-sm-6">
-                    {{ expense_form.title_expense.label(class="form-control-label") }}
-                    {% if expense_form.title_expense.errors %}
-                        {{ expense_form.title_expense(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in expense_form.title_expense.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ expense_form.title_expense(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    {{ expense_form.amount_expense.label(class="form-control-label") }}
-                    {% if expense_form.amount_expense.errors %}
-                        {{ expense_form.amount_expense(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in expense_form.amount_expense.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ expense_form.amount_expense(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    {{ expense_form.currency.label(class="form-control-label") }}
-                    {{ expense_form.currency(class="form-control form-control-lg") }}
-                </div>
-                <div class="col-sm-6">
-                    {{ expense_form.date_expense.label(class="form-control-label") }}
-                    {% if expense_form.date_expense.errors %}
-                        {{ expense_form.date_expense(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in expense_form.date_expense.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ expense_form.date_expense(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="input-group">
-                    {{ expense_form.submit_expense(class="btn btn-secondary") }}
-                </div>
-                <hr class="my-4">
-            </div>
-        </form>
-        <!-- Display the Expenses data -->
-        <h2>Latest Expenses Records</h2>
-        <div class="table-responsive small">
-            <table class="table table-striped table-sm" id="expenseTable">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col"  class="sortable-header" onclick="sortExpenseTable(1)">
-                            <svg class="bi" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Expense
-                        </th>
-                        <th scope="col"  class="sortable-header" onclick="sortExpenseTable(2)">
-                            <svg class="bi" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Amount
-                        </th>
-                        <th scope="col"  class="sortable-header" onclick="sortExpenseTable(3)">
-                            <svg class="bi" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#sort-icon"/>
-                            </svg>
-                            Date
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for expense in expenses[:8] %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ expense.title_expense }}</td>
-                            <td>{{ format_currency(expense.amount_expense, expense.currency) }}</td>
-                            <td>{{ expense.date_expense }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if expenses|length > 8 %}
-                <button class="btn btn-primary" onclick="showAllExpenseRecords()">Show All Records</button>
-            {% endif %}
+        <div class="col-sm-6">
+          {{ income_form.amount_income.label(class="form-control-label") }} {%
+          if income_form.amount_income.errors %} {{
+          income_form.amount_income(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in income_form.amount_income.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ income_form.amount_income(class="form-control
+          form-control-lg") }} {% endif %}
         </div>
+        <div class="col-sm-6">
+          {{ income_form.currency.label(class="form-control-label") }} {% if
+          income_form.currency.errors %} {{
+          income_form.currency(class="form-control form-control-lg is-invalid")
+          }}
+          <div class="invalid-feedback">
+            {% for error in income_form.currency.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ income_form.currency(class="form-control
+          form-control-lg") }} {% endif %}
+        </div>
+        <div class="col-sm-6">
+          {{ income_form.date_income.label(class="form-control-label") }} {% if
+          income_form.date_income.errors %} {{
+          income_form.date_income(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in income_form.date_income.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ income_form.date_income(class="form-control
+          form-control-lg") }} {% endif %}
+        </div>
+        <div class="input-group">
+          {{ income_form.submit_income(class="btn btn-secondary") }}
+        </div>
+        <hr class="my-4" />
+      </div>
+    </form>
+
+    <!-- Display the income data -->
+    <h2>Income Records</h2>
+    <div class="table-responsive small">
+      <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+        <symbol id="sort-icon" viewBox="0 0 16 16">
+          <path d="M4 12L8 16l4-4H4zM12 4L8 0 4 4h8z" />
+        </symbol>
+      </svg>
+      <table class="table table-striped table-sm" id="incomeTable">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col" class="sortable-header" onclick="sortTable(1)">
+              <svg class="bi" width="18" height="18" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Income
+            </th>
+            <th scope="col" class="sortable-header" onclick="sortTable(2)">
+              <svg class="bi" width="16" height="16" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Amount
+            </th>
+            <th scope="col" class="sortable-header" onclick="sortTable(3)">
+              <svg class="bi" width="16" height="16" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Date
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for income in incomes[:8] %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ income.title_income }}</td>
+            <td>
+                {{ format_currency(income['amount_income'], income['currency']) }}
+            </td>
+            <td>{{ income.date_income }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if incomes|length > 8 %}
+      <button class="btn btn-primary" onclick="showAllIncomeRecords()">
+        Show All Records
+      </button>
+      {% endif %}
     </div>
+  </div>
+  <div class="col-md-7 col-lg-8 border-cashflow">
+    <form
+      method="POST"
+      action="{{ url_for('finData.cash_income') }}"
+    >
+      {{ expense_form.hidden_tag() }}
+      <div class="row g-3">
+        <h2 class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-primary-expenses">Expenses</span>
+        </h2>
+        <div class="col-sm-6">
+          {{ expense_form.title_expense.label(class="form-control-label") }} {%
+          if expense_form.title_expense.errors %} {{
+          expense_form.title_expense(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in expense_form.title_expense.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ expense_form.title_expense(class="form-control
+          form-control-lg") }} {% endif %}
+        </div>
+        <div class="col-sm-6">
+          {{ expense_form.amount_expense.label(class="form-control-label") }} {%
+          if expense_form.amount_expense.errors %} {{
+          expense_form.amount_expense(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in expense_form.amount_expense.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ expense_form.amount_expense(class="form-control
+          form-control-lg") }} {% endif %}
+        </div>
+        <div class="col-sm-6">
+          {{ expense_form.currency.label(class="form-control-label") }} {{
+          expense_form.currency(class="form-control form-control-lg") }}
+        </div>
+        <div class="col-sm-6">
+          {{ expense_form.date_expense.label(class="form-control-label") }} {%
+          if expense_form.date_expense.errors %} {{
+          expense_form.date_expense(class="form-control form-control-lg
+          is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in expense_form.date_expense.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% else %} {{ expense_form.date_expense(class="form-control
+          form-control-lg") }} {% endif %}
+        </div>
+        <div class="input-group">
+          {{ expense_form.submit_expense(class="btn btn-secondary") }}
+        </div>
+        <hr class="my-4" />
+      </div>
+    </form>
+    <!-- Display the Expenses data -->
+    <h2>Latest Expenses Records</h2>
+    <div class="table-responsive small">
+      <table class="table table-striped table-sm" id="expenseTable">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th
+              scope="col"
+              class="sortable-header"
+              onclick="sortExpenseTable(1)"
+            >
+              <svg class="bi" width="16" height="16" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Expense
+            </th>
+            <th
+              scope="col"
+              class="sortable-header"
+              onclick="sortExpenseTable(2)"
+            >
+              <svg class="bi" width="16" height="16" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Amount
+            </th>
+            <th
+              scope="col"
+              class="sortable-header"
+              onclick="sortExpenseTable(3)"
+            >
+              <svg class="bi" width="16" height="16" fill="currentColor">
+                <use xlink:href="#sort-icon" />
+              </svg>
+              Date
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in expenses[:8] %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ expense.title_expense }}</td>
+            <td>
+                {{ format_currency(expense['amount_expense'], expense['currency']) }}
+            </td>
+            <td>{{ expense.date_expense }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if expenses|length > 8 %}
+      <button class="btn btn-primary" onclick="showAllExpenseRecords()">
+        Show All Records
+      </button>
+      {% endif %}
+    </div>
+  </div>
 </div>
 <div id="allRecordsIncomeModal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="text-primary-income">All Income Records</h5>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive small">
-                    <table class="table table-striped table-sm" id="modalTable">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col" class="sortable-header" onclick="sortModalTable(1)">
-                                    <svg class="bi" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Expense
-                                </th>
-                                <th scope="col" class="sortable-header" onclick="sortModalTable(2)">
-                                    <svg class="bi" class="sortable-header" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Amount
-                                </th>
-                                <th scope="col" class="sortable-header" onclick="sortModalTable(3)">
-                                    <svg class="bi" class="sortable-header" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Date
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for income in incomes %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ income.title_income }}</td>
-                                    <td>{{ format_currency(income.amount_income, income.currency) }}</td>
-                                    <td>{{ income.date_income }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeAllIncomeRecordsModal()">Close</button>
-            </div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="text-primary-income">All Income Records</h5>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive small">
+          <table class="table table-striped table-sm" id="modalTable">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable(1)"
+                >
+                  <svg class="bi" width="16" height="16" fill="currentColor">
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Expense
+                </th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable(2)"
+                >
+                  <svg
+                    class="bi"
+                    class="sortable-header"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                  >
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Amount
+                </th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable(3)"
+                >
+                  <svg
+                    class="bi"
+                    class="sortable-header"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                  >
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for income in incomes %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ income.title_income }}</td>
+                <td>
+                    {{ format_currency(income['amount_income'], income['currency']) }}
+                </td>
+                <td>{{ income.date_income }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeAllIncomeRecordsModal()"
+        >
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 <div id="allRecordsExpenseModal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="text-primary-income">All Expenses Records</h5>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive small">
-                    <table class="table table-striped table-sm" id="modalTable2" >
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col"  class="sortable-header" onclick="sortModalTable2(1)">
-                                    <svg class="bi" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Expense
-                                </th>
-                                <th scope="col" class="sortable-header" onclick="sortModalTable2(2)">
-                                    <svg class="bi" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Amount
-                                </th>
-                                <th scope="col" class="sortable-header" onclick="sortModalTable2(3)">
-                                    <svg class="bi" width="16" height="16" fill="currentColor">
-                                        <use xlink:href="#sort-icon"/>
-                                    </svg>
-                                    Date
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for expense in expenses %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ expense.title_expense }}</td>
-                                    <td>{{ format_currency(expense.amount_expense, expense.currency) }}</td>
-                                    <td>{{ expense.date_expense }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeAllExpenseRecordsModal()">Close</button>
-            </div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="text-primary-income">All Expenses Records</h5>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive small">
+          <table class="table table-striped table-sm" id="modalTable2">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable2(1)"
+                >
+                  <svg class="bi" width="16" height="16" fill="currentColor">
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Expense
+                </th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable2(2)"
+                >
+                  <svg class="bi" width="16" height="16" fill="currentColor">
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Amount
+                </th>
+                <th
+                  scope="col"
+                  class="sortable-header"
+                  onclick="sortModalTable2(3)"
+                >
+                  <svg class="bi" width="16" height="16" fill="currentColor">
+                    <use xlink:href="#sort-icon" />
+                  </svg>
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in expenses %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ expense.title_expense }}</td>
+                <td>
+                    {{ format_currency(expense['amount_expense'], expense['currency']) }}
+                </td>
+                <td>{{ expense.date_expense }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeAllExpenseRecordsModal()"
+        >
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
 
 <!-- Ensure JSON data is properly formatted -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const incomeData = JSON.parse('{{ incomes|tojson|safe }}');
-    const expenseData = JSON.parse('{{ expenses|tojson|safe }}');
+  const incomeData = { incomes,tojson,safe };
+  const expenseData = { expenses,tojson,safe };
+  // Use these variables to create your charts
 
-// Use these variables to create your charts
+  const incomeAmounts = incomeData.map(income => income.amountincome);
+  const expenseAmounts = expenseData.map(expense => expense.amountexpense);
 
+  const incomeLabels = incomeData.map(income => income.date_income);
+  const expenseLabels = expenseData.map(expense => expense.date_expense);
 
-    const incomeAmounts = incomeData.map(income => income.amount_income);
-    const expenseAmounts = expenseData.map(expense => expense.amount_expense);
-
-    const incomeLabels = incomeData.map(income => income.date_income);
-    const expenseLabels = expenseData.map(expense => expense.date_expense);
-
-    // Create the chart with proper syntax
-    const ctx = document.getElementById('cashflowChart').getContext('2d');
-    const cashflowTrendChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: incomeLabels,
-            datasets: [
-                {
-                    label: 'Income',
-                    data: incomeAmounts,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                },
-                {
-                    label: 'Expense',
-                    data: expenseAmounts,
-                    borderColor: 'rgb(255, 99, 132)',
-                    tension: 0.1
-                }
-            ]
+  // Create the chart with proper syntax
+  const ctx = document.getElementById("cashflowChart").getContext("2d");
+  const cashflowTrendChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: incomeLabels,
+      datasets: [
+        {
+          label: "Income",
+          data: incomeAmounts,
+          borderColor: "rgb(75, 192, 192)",
+          tension: 0.1,
         },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Amount'
-                    }
-                }
-            }
-        }
-    });
+        {
+          label: "Expense",
+          data: expenseAmounts,
+          borderColor: "rgb(255, 99, 132)",
+          tension: 0.1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Date",
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Amount",
+          },
+        },
+      },
+    },
+  });
 </script>
 
 {% endblock %}

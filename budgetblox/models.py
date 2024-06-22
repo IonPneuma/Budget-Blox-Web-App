@@ -56,8 +56,8 @@ class Income(db.Model):
         return {
             'id': self.id,
             'title_income': self.title_income,
-            'amount_income': self.amount_income,
-            'date_income': self.date_income.strftime('%Y-%m-%d') if self.date_income else None,
+            'amount_income': float(self.amount_income),  # Convert to float for JSON serialization
+            'date_income': self.date_income.isoformat() if self.date_income else None,
             'project_id': self.project_id,
             'currency': self.currency
         }
@@ -80,8 +80,8 @@ class Expense(db.Model):
         return {
             'id': self.id,
             'title_expense': self.title_expense,
-            'amount_expense': self.amount_expense,
-            'date_expense': self.date_expense.strftime('%Y-%m-%d') if self.date_expense else None,
+            'amount_expense': float(self.amount_expense),
+            'date_expense': self.date_expense.isoformat() if self.date_expense else None,
             'project_id': self.project_id,
             'currency': self.currency
         }
