@@ -133,7 +133,6 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ income.title_income }}</td>
                             <td>{{ format_currency(income.amount_income, income.currency) }}</td>
-                            <td>{{ income.date_income|datetime('%Y-%m-%d') }}</td>
                             <td>{{ income.date_income }}</td>
                         </tr>
                     {% endfor %}
@@ -234,7 +233,6 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ expense.title_expense }}</td>
                             <td>{{ format_currency(expense.amount_expense, expense.currency) }}</td>
-                            <td>{{ expense.date_expense|datetime('%Y-%m-%d') }}</td>
                             <td>{{ expense.date_expense }}</td>
                         </tr>
                     {% endfor %}

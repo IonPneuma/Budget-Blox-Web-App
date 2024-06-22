@@ -36,7 +36,7 @@ class User(db.Model, UserMixin):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.datetime)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.date)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     incomes = db.relationship('Income', backref='project', lazy=True)
     expenses = db.relationship('Expense', backref='project', lazy=True)
@@ -52,17 +52,18 @@ class Income(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     currency = db.Column(db.String(10), nullable=False, default='GBP')
 
-    def format_amount(self):
-        return format_currency(self.amount_income, self.currency)
-
     def to_dict(self):
         return {
             'id': self.id,
             'title_income': self.title_income,
             'amount_income': self.amount_income,
-            'date_income': self.date_income.isoformat() if self.date_income else None,
-            'project_id': self.project_id
+            'date_income': self.date_income.strftime('%Y-%m-%d') if self.date_income else None,
+            'project_id': self.project_id,
+            'currency': self.currency
         }
+
+    def format_amount(self):
+        return format_currency(self.amount_income, self.currency)
 
     def __repr__(self):
         return f"Income('{self.title_income}', '{self.amount_income}', Project ID: '{self.project_id}')"
@@ -80,9 +81,14 @@ class Expense(db.Model):
             'id': self.id,
             'title_expense': self.title_expense,
             'amount_expense': self.amount_expense,
-            'date_expense': self.date_expense.strftime('%Y-%m-%d'),
-            'project_id': self.project_id
+            'date_expense': self.date_expense.strftime('%Y-%m-%d') if self.date_expense else None,
+            'project_id': self.project_id,
+            'currency': self.currency
         }
+
+    # Consider adding a format_amount method similar to the Income model
+    def format_amount(self):
+        return format_currency(self.amount_expense, self.currency)
 
     def __repr__(self):
         return f"Expense('{self.title_expense}', '{self.amount_expense}', Project ID: '{self.project_id}')"

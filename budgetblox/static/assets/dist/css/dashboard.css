@@ -50,10 +50,11 @@
 
 .border-cashflow {
   border: 1px solid #888;
+  border-top: 3px solid #888;
   border-radius: 20px; /* Changed to a more standard unit */
   padding: 20px; /* 5% might be too much, adjust as needed */
   width: 100%; /* Adjusted for consistency */
-  margin: 0 auto; /* Center the element */
+  margin-top: 15% auto; /* Center the element */
   box-sizing: border-box; /* Ensures padding is included in the width */
 }
 
