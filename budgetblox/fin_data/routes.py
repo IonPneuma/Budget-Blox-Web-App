@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, g, request, current_app, session
+from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, g, request, current_app, session
 from budgetblox import db
 from flask_login import login_user, current_user, logout_user, login_required
 from budgetblox.models import Income, Expense, Project
 from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, SelectProjectForm, ProjectForm, UpdateProjectForm
 from datetime import datetime, date
+from collections import defaultdict
 
 finData = Blueprint('finData', __name__)
 
@@ -113,22 +114,50 @@ def select_project(project_id):
 
 
 
+from flask import flash, redirect, url_for
+from flask_login import login_required, current_user
+from sqlalchemy.orm import joinedload
+from budgetblox import db
+from budgetblox.models import Project, Income, Expense
+
 @finData.route("/delete_project/<int:project_id>", methods=['POST'])
 @login_required
 def delete_project(project_id):
-    project = db.session.get(Project, project_id)
+    project = Project.query.options(
+        joinedload(Project.incomes),
+        joinedload(Project.expenses)
+    ).get(project_id)
+    
     user_projects = Project.query.filter_by(owner=current_user).all()
 
     if len(user_projects) <= 1:
         flash('You must have at least one project.', 'danger')
     elif project and project.owner == current_user:
-        db.session.delete(project)
-        db.session.commit()
-        flash(f'Project "{project.name}" has been deleted.', 'success')
+        try:
+            # Delete associated incomes and expenses
+            Income.query.filter_by(project_id=project.id).delete()
+            Expense.query.filter_by(project_id=project.id).delete()
+
+            # Delete the project
+            db.session.delete(project)
+            db.session.commit()
+
+            flash(f'Project "{project.name}" and all associated data have been deleted.', 'success')
+
+            # Set a new current project if the deleted project was the current one
+            if session.get('selected_project_id') == project_id:
+                new_current_project = Project.query.filter_by(owner=current_user).first()
+                if new_current_project:
+                    session['selected_project_id'] = new_current_project.id
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred while deleting the project: {str(e)}', 'danger')
     else:
         flash('Project not found or unauthorized action.', 'danger')
     
     return redirect(url_for('finData.create_project'))
+
+
 
 @finData.route("/update_project/<int:project_id>", methods=['POST'])
 @login_required
@@ -147,3 +176,76 @@ def update_project(project_id):
     return redirect(url_for('finData.create_project'))
 
 
+
+
+@finData.route("/api/financial_data")
+@login_required
+def get_financial_data():
+    currency = request.args.get('currency', 'EUR')
+    project_id = session.get('selected_project_id')
+    
+    incomes = Income.query.filter_by(project_id=project_id).all()
+    expenses = Expense.query.filter_by(project_id=project_id).all()
+    
+    # Process data for charts
+    dates = sorted(set([income.date_income for income in incomes] + [expense.date_expense for expense in expenses]))
+    income_data = defaultdict(float)
+    expense_data = defaultdict(float)
+    income_distribution = defaultdict(float)
+    expense_distribution = defaultdict(float)
+    monthly_income = defaultdict(float)
+    monthly_expense = defaultdict(float)
+    
+    for income in incomes:
+        income_amount = convert_currency(income.amount_income, income.currency, currency)
+        income_data[income.date_income] += income_amount
+        income_distribution[income.title_income] += income_amount
+        monthly_income[income.date_income.strftime('%Y-%m')] += income_amount
+    
+    for expense in expenses:
+        expense_amount = convert_currency(expense.amount_expense, expense.currency, currency)
+        expense_data[expense.date_expense] += expense_amount
+        expense_distribution[expense.title_expense] += expense_amount
+        monthly_expense[expense.date_expense.strftime('%Y-%m')] += expense_amount
+    
+    total_income = sum(income_data.values())
+    total_expenses = sum(expense_data.values())
+    
+    return jsonify({
+        'dates': [date.strftime('%Y-%m-%d') for date in dates],
+        'incomes': [income_data[date] for date in dates],
+        'expenses': [expense_data[date] for date in dates],
+        'totalIncome': f"{currency} {total_income:.2f}",
+        'totalExpenses': f"{currency} {total_expenses:.2f}",
+        'netCashFlow': f"{currency} {(total_income - total_expenses):.2f}",
+        'incomeDistribution': {
+            'labels': list(income_distribution.keys()),
+            'values': list(income_distribution.values())
+        },
+        'expenseDistribution': {
+            'labels': list(expense_distribution.keys()),
+            'values': list(expense_distribution.values())
+        },
+        'months': sorted(set(monthly_income.keys()).union(monthly_expense.keys())),
+        'monthlyIncomes': [monthly_income[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))],
+        'monthlyExpenses': [monthly_expense[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))]
+    })
+
+def convert_currency(amount, from_currency, to_currency):
+    # This is a placeholder function. In a real application, you would use
+    # up-to-date exchange rates, possibly from an external API.
+    exchange_rates = {
+        'EUR': 1,    # Base currency
+        'USD': 1.12, # 1 EUR = 1.12 USD (example rate)
+        'GBP': 0.86, # 1 EUR = 0.86 GBP (example rate)
+        # Add more currencies and their exchange rates relative to EUR
+    }
+    
+    if from_currency == to_currency:
+        return amount
+    
+    # Convert to EUR first (if not already in EUR)
+    amount_in_eur = amount / exchange_rates[from_currency]
+    
+    # Then convert from EUR to the target currency
+    return amount_in_eur * exchange_rates[to_currency]

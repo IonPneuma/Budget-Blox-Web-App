@@ -38,8 +38,8 @@ class Project(db.Model):
     name = db.Column(db.String(100), nullable=False)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    incomes = db.relationship('Income', backref='project', lazy=True)
-    expenses = db.relationship('Expense', backref='project', lazy=True)
+    incomes = db.relationship('Income', backref='project', lazy=True, cascade="all, delete-orphan")
+    expenses = db.relationship('Expense', backref='project', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, name, owner):
         self.name = name
