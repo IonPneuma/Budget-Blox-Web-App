@@ -36,10 +36,15 @@ class User(db.Model, UserMixin):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.date)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     incomes = db.relationship('Income', backref='project', lazy=True)
     expenses = db.relationship('Expense', backref='project', lazy=True)
+
+    def __init__(self, name, owner):
+        self.name = name
+        self.owner = owner
+        self.date_created = datetime.utcnow()
 
     def __repr__(self):
         return f"Project('{self.name}', '{self.date_created}')"

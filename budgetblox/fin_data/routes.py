@@ -27,18 +27,23 @@ def dashboard():
 @finData.route("/cashflow", methods=['GET', 'POST'])
 @login_required
 def cash_income():
+    current_project = Project.query.get(session.get('selected_project_id'))
+    if not current_project:
+        flash('Please select a project first.', 'warning')
+        return redirect(url_for('finData.dashboard'))
+
     income_form = IncomeForm()
     expense_form = ExpenseForm()
     
     if income_form.validate_on_submit():
-        income = Income(
+        new_income = Income(
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
-            project_id=g.current_project.id,
+            project_id=current_project.id,
             currency=income_form.currency.data
         )
-        db.session.add(income)
+        db.session.add(new_income)
         db.session.commit()
         flash('Income added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
@@ -48,7 +53,7 @@ def cash_income():
             title_expense=expense_form.title_expense.data,
             amount_expense=expense_form.amount_expense.data,
             date_expense=expense_form.date_expense.data,
-            project_id=g.current_project.id,
+            project_id=current_project.id,  # Changed from g.current_project.id
             currency=expense_form.currency.data
         )
         db.session.add(expense)
@@ -56,9 +61,8 @@ def cash_income():
         flash('Expense added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
 
-
-    incomes = Income.query.filter_by(project_id=g.current_project.id).all()
-    expenses = Expense.query.filter_by(project_id=g.current_project.id).all()
+    incomes = Income.query.filter_by(project_id=current_project.id).all()  # Changed from g.current_project.id
+    expenses = Expense.query.filter_by(project_id=current_project.id).all()  # Changed from g.current_project.id
 
     income_data = [income.to_dict() for income in incomes]
     expense_data = [expense.to_dict() for expense in expenses]
@@ -68,7 +72,8 @@ def cash_income():
                            income_form=income_form, 
                            expense_form=expense_form, 
                            incomes=income_data, 
-                           expenses=expense_data)
+                           expenses=expense_data,
+                           project=current_project)
 
 @finData.context_processor
 def inject_project_info():
@@ -89,10 +94,13 @@ def create_project():
         project = Project(name=form.name.data, owner=current_user)
         db.session.add(project)
         db.session.commit()
+        session['selected_project_id'] = project.id  # Set the new project as current
         flash('Your project has been created!', 'success')
-        return redirect(url_for('finData.create_project', project_id=project.id))
+        return redirect(url_for('finData.dashboard'))
     projects = Project.query.filter_by(owner=current_user).all()  # Fetch all projects for the current user
     return render_template('create_project.html', title='Create Project', form=form, projects=projects)
+
+
 
 @finData.route("/select_project/<int:project_id>")
 @login_required

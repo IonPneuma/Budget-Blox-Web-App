@@ -48,7 +48,7 @@ class IncomeForm(FlaskForm):
 
         # Add more currencies as needed
 
-    submit_expense = SubmitField('Add')
+    
     submit_income = SubmitField('Add')
 
 class ExpenseForm(FlaskForm):
@@ -87,7 +87,7 @@ class ExpenseForm(FlaskForm):
         ('CAD', 'Canadian Dollar')], validators=[DataRequired()])
 
         # Add more currencies as needed
-        #  
+    
     submit_expense = SubmitField('Add')
 
 class UpdateProjectForm(FlaskForm):
