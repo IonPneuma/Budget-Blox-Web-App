@@ -1,27 +1,27 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask import Blueprint, render_template, url_for, flash, redirect, request, session
 from flask_login import login_user, current_user, logout_user, login_required
 from budgetblox import db, bcrypt
 from budgetblox.models import User, Project
 from budgetblox.users.forms import RegistrationForm, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm
 from budgetblox.users.utils import delete_old_picture, send_reset_email, save_picture
 
+
 users = Blueprint('users', __name__)
 
 @users.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        first_project = Project.query.filter_by(owner=current_user).first()
-        return redirect(url_for('finData.dashboard', project_id=first_project.id if first_project else 1))
+        return redirect(url_for('finData.dashboard'))
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        if Project.query.filter_by(owner=user).count() == 0:
-            project = Project(name="Default Project", owner=user)
-            db.session.add(project)
-            db.session.commit()
+        project = Project(name="Default Project", owner=user)
+        db.session.add(project)
+        db.session.commit()
+        session['selected_project_id'] = project.id
         flash('Your account has been created! You are now able to log in.', 'success')
         return redirect(url_for('users.login'))
     return render_template('register.html', title='Register', form=form)
@@ -37,13 +37,26 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
+            
+            # Set the default project for the user
+            first_project = Project.query.filter_by(owner=user).first()
+            if first_project:
+                session['selected_project_id'] = first_project.id
+            else:
+                # If no project exists, create a default one
+                default_project = Project(name="Default Project", owner=user)
+                db.session.add(default_project)
+                db.session.commit()
+                session['selected_project_id'] = default_project.id
+            
             if next_page:
                 return redirect(next_page)
-            first_project = Project.query.filter_by(owner=current_user).first()
-            return redirect(url_for('finData.dashboard', project_id=first_project.id if first_project else 1))
+            return redirect(url_for('finData.dashboard'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+
 
 @users.route("/logout")
 def logout():

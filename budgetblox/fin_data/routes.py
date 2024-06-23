@@ -184,11 +184,19 @@ def get_financial_data():
     currency = request.args.get('currency', 'EUR')
     project_id = session.get('selected_project_id')
     
+    if not project_id:
+        return jsonify({'error': 'No project selected'}), 400
+    
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    
     incomes = Income.query.filter_by(project_id=project_id).all()
     expenses = Expense.query.filter_by(project_id=project_id).all()
     
-    # Process data for charts
-    dates = sorted(set([income.date_income for income in incomes] + [expense.date_expense for expense in expenses]))
+    # Process data
+    dates = sorted(set([income.date_income for income in incomes if income.date_income] + 
+                       [expense.date_expense for expense in expenses if expense.date_expense]))
     income_data = defaultdict(float)
     expense_data = defaultdict(float)
     income_distribution = defaultdict(float)
@@ -197,24 +205,28 @@ def get_financial_data():
     monthly_expense = defaultdict(float)
     
     for income in incomes:
-        income_amount = convert_currency(income.amount_income, income.currency, currency)
-        income_data[income.date_income] += income_amount
-        income_distribution[income.title_income] += income_amount
-        monthly_income[income.date_income.strftime('%Y-%m')] += income_amount
+        if income.date_income and income.amount_income is not None:
+            income_amount = convert_currency(income.amount_income, income.currency, currency)
+            date_str = income.date_income.strftime('%Y-%m-%d')
+            income_data[date_str] += income_amount
+            income_distribution[income.title_income] += income_amount
+            monthly_income[income.date_income.strftime('%Y-%m')] += income_amount
     
     for expense in expenses:
-        expense_amount = convert_currency(expense.amount_expense, expense.currency, currency)
-        expense_data[expense.date_expense] += expense_amount
-        expense_distribution[expense.title_expense] += expense_amount
-        monthly_expense[expense.date_expense.strftime('%Y-%m')] += expense_amount
+        if expense.date_expense and expense.amount_expense is not None:
+            expense_amount = convert_currency(expense.amount_expense, expense.currency, currency)
+            date_str = expense.date_expense.strftime('%Y-%m-%d')
+            expense_data[date_str] += expense_amount
+            expense_distribution[expense.title_expense] += expense_amount
+            monthly_expense[expense.date_expense.strftime('%Y-%m')] += expense_amount
     
     total_income = sum(income_data.values())
     total_expenses = sum(expense_data.values())
     
-    return jsonify({
+    data = {
         'dates': [date.strftime('%Y-%m-%d') for date in dates],
-        'incomes': [income_data[date] for date in dates],
-        'expenses': [expense_data[date] for date in dates],
+        'incomes': [income_data[date.strftime('%Y-%m-%d')] for date in dates],
+        'expenses': [expense_data[date.strftime('%Y-%m-%d')] for date in dates],
         'totalIncome': f"{currency} {total_income:.2f}",
         'totalExpenses': f"{currency} {total_expenses:.2f}",
         'netCashFlow': f"{currency} {(total_income - total_expenses):.2f}",
@@ -229,23 +241,16 @@ def get_financial_data():
         'months': sorted(set(monthly_income.keys()).union(monthly_expense.keys())),
         'monthlyIncomes': [monthly_income[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))],
         'monthlyExpenses': [monthly_expense[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))]
-    })
-
-def convert_currency(amount, from_currency, to_currency):
-    # This is a placeholder function. In a real application, you would use
-    # up-to-date exchange rates, possibly from an external API.
-    exchange_rates = {
-        'EUR': 1,    # Base currency
-        'USD': 1.12, # 1 EUR = 1.12 USD (example rate)
-        'GBP': 0.86, # 1 EUR = 0.86 GBP (example rate)
-        # Add more currencies and their exchange rates relative to EUR
     }
     
-    if from_currency == to_currency:
-        return amount
+    return jsonify(data)
+
+# Make sure to implement this function
+def convert_currency(amount, from_currency, to_currency):
+    # This is a placeholder. In a real application, you'd use actual conversion rates.
+    if amount is None:
+        return 0  # or handle this case as appropriate for your application
     
-    # Convert to EUR first (if not already in EUR)
-    amount_in_eur = amount / exchange_rates[from_currency]
+    # For now, we're just returning the original amount
+    return float(amount)
     
-    # Then convert from EUR to the target currency
-    return amount_in_eur * exchange_rates[to_currency]

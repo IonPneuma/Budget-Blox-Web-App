@@ -37,56 +37,11 @@
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             <!-- Add more currencies as needed -->
-          </select>
+        </select>
         </div>
       </div>
     </div>
   </div>
-
-  I apologize for the confusion. Let's address these issues and ensure the
-  graphs are displaying correctly and are relative to the data. Here's a revised
-  approach: First, let's update the dashboard.html to make sure all chart
-  containers are visible: htmlCopy{% extends "base.html" %} {% block content %}
-  <div class="container-fluid dashboard">
-    <div class="row mb-4">
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card bg-primary text-white h-100">
-          <div class="card-body">
-            <h5 class="card-title">Total Income</h5>
-            <h2 class="card-text" id="totalIncome">Loading...</h2>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card bg-success text-white h-100">
-          <div class="card-body">
-            <h5 class="card-title">Total Expenses</h5>
-            <h2 class="card-text" id="totalExpenses">Loading...</h2>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card bg-info text-white h-100">
-          <div class="card-body">
-            <h5 class="card-title">Net Cash Flow</h5>
-            <h2 class="card-text" id="netCashFlow">Loading...</h2>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card bg-warning text-dark h-100">
-          <div class="card-body">
-            <h5 class="card-title">Currency</h5>
-            <select id="currencySelector" class="form-select">
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-              <option value="GBP">GBP</option>
-              <!-- Add more currencies as needed -->
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="row mb-4">
       <div class="col-12 mb-3">
@@ -128,10 +83,11 @@
         </div>
       </div>
     </div>
+    
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{{ url_for('static', filename='assets/dist/js/graphs.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
 
   <div class="row g-5">
     <div class="col-md-7 col-lg-8 border-cashflow">
@@ -526,5 +482,5 @@
       </div>
     </div>
   </div>
-  {% endblock %}
 </div>
+{% endblock %}
