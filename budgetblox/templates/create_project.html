@@ -14,6 +14,10 @@
       </div>
       {% else %} {{ form.name(class="form-control") }} {% endif %}
     </div>
+    <div class="form-group">
+      {{ form.currency.label(class="form-control-label") }} {{
+      form.currency(class="form-control") }}
+    </div>
     <div class="form-group">{{ form.submit(class="btn btn-primary") }}</div>
   </form>
 
@@ -25,6 +29,7 @@
           <th scope="col">#</th>
           <th scope="col">Project Name</th>
           <th scope="col">Date Created</th>
+          <th scope="col">Currency</th>
           <th scope="col">Actions</th>
         </tr>
       </thead>

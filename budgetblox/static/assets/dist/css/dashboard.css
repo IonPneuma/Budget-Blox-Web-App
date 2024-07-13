@@ -62,3 +62,32 @@ th svg.bi {
   margin-right: 5px;
   vertical-align: middle;
 }
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+
+
+.body1 {
+  background-color: rgba(33, 228, 147, 0.856);
+
+}
+
+.body2 {
+  background-color: rgba(255, 34, 82, 0.808);
+
+}
+
+.body3 {
+  background-color: rgba(20, 78, 236, 0.705);
+
+}
+
+.body4 {
+  background-color: rgba(236, 232, 20, 0.801);
+   
+
+}

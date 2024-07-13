@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, g, request, current_app, session
+from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, current_app, session
+from flask_login import login_required, current_user
 from budgetblox import db
-from flask_login import login_user, current_user, logout_user, login_required
 from budgetblox.models import Income, Expense, Project
-from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, SelectProjectForm, ProjectForm, UpdateProjectForm
-from datetime import datetime, date
-from collections import defaultdict
+from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, ProjectForm, UpdateProjectForm
+from datetime import datetime
+from sqlalchemy.orm import joinedload
+
 
 finData = Blueprint('finData', __name__)
 
@@ -13,7 +14,6 @@ finData = Blueprint('finData', __name__)
 def dashboard():
     current_project = Project.query.get(session.get('selected_project_id'))
     if current_project is None:
-        # If no project is selected, get the first project of the user
         current_project = Project.query.filter_by(owner=current_user).first()
         if current_project:
             session['selected_project_id'] = current_project.id
@@ -21,7 +21,6 @@ def dashboard():
             current_app.logger.error(f"No projects found for user: {current_user.id}")
             return render_template('404.html'), 404
 
-    current_app.logger.info(f"Dashboard route accessed with project_id: {current_project.id}")
     projects = Project.query.filter_by(owner=current_user).all()
     return render_template('dashboard.html', title='Dashboard', project=current_project, projects=projects)
 
@@ -37,14 +36,13 @@ def cash_income():
     expense_form = ExpenseForm()
     
     if income_form.validate_on_submit():
-        new_income = Income(
+        income = Income(
             title_income=income_form.title_income.data,
             amount_income=income_form.amount_income.data,
             date_income=income_form.date_income.data,
-            project_id=current_project.id,
-            currency=income_form.currency.data
+            project_id=current_project.id
         )
-        db.session.add(new_income)
+        db.session.add(income)
         db.session.commit()
         flash('Income added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
@@ -54,26 +52,22 @@ def cash_income():
             title_expense=expense_form.title_expense.data,
             amount_expense=expense_form.amount_expense.data,
             date_expense=expense_form.date_expense.data,
-            project_id=current_project.id,  # Changed from g.current_project.id
-            currency=expense_form.currency.data
+            project_id=current_project.id
         )
         db.session.add(expense)
         db.session.commit()
         flash('Expense added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
 
-    incomes = Income.query.filter_by(project_id=current_project.id).all()  # Changed from g.current_project.id
-    expenses = Expense.query.filter_by(project_id=current_project.id).all()  # Changed from g.current_project.id
-
-    income_data = [income.to_dict() for income in incomes]
-    expense_data = [expense.to_dict() for expense in expenses]
+    incomes = Income.query.filter_by(project_id=current_project.id).all()
+    expenses = Expense.query.filter_by(project_id=current_project.id).all()
 
     return render_template('cashflow.html', 
                            title='Cash', 
                            income_form=income_form, 
                            expense_form=expense_form, 
-                           incomes=income_data, 
-                           expenses=expense_data,
+                           incomes=incomes, 
+                           expenses=expenses,
                            project=current_project)
 
 @finData.context_processor
@@ -85,23 +79,19 @@ def inject_project_info():
         return dict(projects=projects, current_project=current_project)
     return dict()
 
-
-
 @finData.route("/create_project", methods=['GET', 'POST'])
 @login_required
 def create_project():
     form = ProjectForm()
     if form.validate_on_submit():
-        project = Project(name=form.name.data, owner=current_user)
+        project = Project(name=form.name.data, currency=form.currency.data, owner=current_user)
         db.session.add(project)
         db.session.commit()
-        session['selected_project_id'] = project.id  # Set the new project as current
+        session['selected_project_id'] = project.id
         flash('Your project has been created!', 'success')
         return redirect(url_for('finData.dashboard'))
-    projects = Project.query.filter_by(owner=current_user).all()  # Fetch all projects for the current user
+    projects = Project.query.filter_by(owner=current_user).all()
     return render_template('create_project.html', title='Create Project', form=form, projects=projects)
-
-
 
 @finData.route("/select_project/<int:project_id>")
 @login_required
@@ -111,14 +101,6 @@ def select_project(project_id):
         session['selected_project_id'] = project_id
         flash(f'Switched to project: {project.name}', 'success')
     return redirect(request.referrer or url_for('finData.dashboard'))
-
-
-
-from flask import flash, redirect, url_for
-from flask_login import login_required, current_user
-from sqlalchemy.orm import joinedload
-from budgetblox import db
-from budgetblox.models import Project, Income, Expense
 
 @finData.route("/delete_project/<int:project_id>", methods=['POST'])
 @login_required
@@ -134,17 +116,11 @@ def delete_project(project_id):
         flash('You must have at least one project.', 'danger')
     elif project and project.owner == current_user:
         try:
-            # Delete associated incomes and expenses
             Income.query.filter_by(project_id=project.id).delete()
             Expense.query.filter_by(project_id=project.id).delete()
-
-            # Delete the project
             db.session.delete(project)
             db.session.commit()
-
             flash(f'Project "{project.name}" and all associated data have been deleted.', 'success')
-
-            # Set a new current project if the deleted project was the current one
             if session.get('selected_project_id') == project_id:
                 new_current_project = Project.query.filter_by(owner=current_user).first()
                 if new_current_project:
@@ -156,8 +132,6 @@ def delete_project(project_id):
         flash('Project not found or unauthorized action.', 'danger')
     
     return redirect(url_for('finData.create_project'))
-
-
 
 @finData.route("/update_project/<int:project_id>", methods=['POST'])
 @login_required
@@ -175,13 +149,9 @@ def update_project(project_id):
         flash('Project not found or unauthorized action.', 'danger')
     return redirect(url_for('finData.create_project'))
 
-
-
-
 @finData.route("/api/financial_data")
 @login_required
 def get_financial_data():
-    currency = request.args.get('currency', 'EUR')
     project_id = session.get('selected_project_id')
     
     if not project_id:
@@ -194,63 +164,17 @@ def get_financial_data():
     incomes = Income.query.filter_by(project_id=project_id).all()
     expenses = Expense.query.filter_by(project_id=project_id).all()
     
-    # Process data
-    dates = sorted(set([income.date_income for income in incomes if income.date_income] + 
-                       [expense.date_expense for expense in expenses if expense.date_expense]))
-    income_data = defaultdict(float)
-    expense_data = defaultdict(float)
-    income_distribution = defaultdict(float)
-    expense_distribution = defaultdict(float)
-    monthly_income = defaultdict(float)
-    monthly_expense = defaultdict(float)
-    
-    for income in incomes:
-        if income.date_income and income.amount_income is not None:
-            income_amount = convert_currency(income.amount_income, income.currency, currency)
-            date_str = income.date_income.strftime('%Y-%m-%d')
-            income_data[date_str] += income_amount
-            income_distribution[income.title_income] += income_amount
-            monthly_income[income.date_income.strftime('%Y-%m')] += income_amount
-    
-    for expense in expenses:
-        if expense.date_expense and expense.amount_expense is not None:
-            expense_amount = convert_currency(expense.amount_expense, expense.currency, currency)
-            date_str = expense.date_expense.strftime('%Y-%m-%d')
-            expense_data[date_str] += expense_amount
-            expense_distribution[expense.title_expense] += expense_amount
-            monthly_expense[expense.date_expense.strftime('%Y-%m')] += expense_amount
-    
-    total_income = sum(income_data.values())
-    total_expenses = sum(expense_data.values())
-    
+    total_income = sum(income.amount_income for income in incomes)
+    total_expenses = sum(expense.amount_expense for expense in expenses)
+
     data = {
-        'dates': [date.strftime('%Y-%m-%d') for date in dates],
-        'incomes': [income_data[date.strftime('%Y-%m-%d')] for date in dates],
-        'expenses': [expense_data[date.strftime('%Y-%m-%d')] for date in dates],
-        'totalIncome': f"{currency} {total_income:.2f}",
-        'totalExpenses': f"{currency} {total_expenses:.2f}",
-        'netCashFlow': f"{currency} {(total_income - total_expenses):.2f}",
-        'incomeDistribution': {
-            'labels': list(income_distribution.keys()),
-            'values': list(income_distribution.values())
-        },
-        'expenseDistribution': {
-            'labels': list(expense_distribution.keys()),
-            'values': list(expense_distribution.values())
-        },
-        'months': sorted(set(monthly_income.keys()).union(monthly_expense.keys())),
-        'monthlyIncomes': [monthly_income[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))],
-        'monthlyExpenses': [monthly_expense[month] for month in sorted(set(monthly_income.keys()).union(monthly_expense.keys()))]
+        'totalIncome': f"{project.currency} {total_income:.2f}",
+        'totalExpenses': f"{project.currency} {total_expenses:.2f}",
+        'currencySymbol': f"{project.currency}",
+        'netCashFlow': f"{project.currency} {(total_income - total_expenses):.2f}",
+        'incomes': [income.to_dict() for income in incomes],
+        'expenses': [expense.to_dict() for expense in expenses]
     }
     
     return jsonify(data)
 
-# Make sure to implement this function
-def convert_currency(amount, from_currency, to_currency):
-    # This is a placeholder. In a real application, you'd use actual conversion rates.
-    if amount is None:
-        return 0  # or handle this case as appropriate for your application
-    
-    # For now, we're just returning the original amount
-    return float(amount)
-    

@@ -1,4 +1,5 @@
 from datetime import datetime
+from locale import currency
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask import current_app
 from flask_login import UserMixin
@@ -37,12 +38,14 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    currency = db.Column(db.String(3), nullable=False, default='GBP')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     incomes = db.relationship('Income', backref='project', lazy=True, cascade="all, delete-orphan")
     expenses = db.relationship('Expense', backref='project', lazy=True, cascade="all, delete-orphan")
 
-    def __init__(self, name, owner):
+    def __init__(self, name, currency, owner):
         self.name = name
+        self.currency = currency
         self.owner = owner
         self.date_created = datetime.utcnow()
 
@@ -55,7 +58,6 @@ class Income(db.Model):
     amount_income = db.Column(db.Float, nullable=False)
     date_income = db.Column(db.Date, nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    currency = db.Column(db.String(10), nullable=False, default='GBP')
 
     def to_dict(self):
         return {
@@ -63,8 +65,7 @@ class Income(db.Model):
             'title_income': self.title_income,
             'amount_income': float(self.amount_income),  # Convert to float for JSON serialization
             'date_income': self.date_income.isoformat() if self.date_income else None,
-            'project_id': self.project_id,
-            'currency': self.currency
+            'project_id': self.project_id
         }
 
     def format_amount(self):
@@ -78,7 +79,6 @@ class Expense(db.Model):
     title_expense = db.Column(db.String(100), nullable=False)
     amount_expense = db.Column(db.Float, nullable=False)
     date_expense = db.Column(db.Date, nullable=False)
-    currency = db.Column(db.String(10), nullable=False, default='GBP')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
 
     def to_dict(self):
@@ -87,8 +87,7 @@ class Expense(db.Model):
             'title_expense': self.title_expense,
             'amount_expense': float(self.amount_expense),
             'date_expense': self.date_expense.isoformat() if self.date_expense else None,
-            'project_id': self.project_id,
-            'currency': self.currency
+            'project_id': self.project_id
         }
 
     # Consider adding a format_amount method similar to the Income model

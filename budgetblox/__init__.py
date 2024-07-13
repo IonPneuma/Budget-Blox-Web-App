@@ -1,4 +1,4 @@
-from flask import Flask, g, request, current_app
+from flask import Flask, g, logging, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
@@ -19,6 +19,7 @@ csrf = CSRFProtect()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config['DEBUG'] = True
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -26,6 +27,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+    
 
     with app.app_context():
         from budgetblox.models import User, Project, Income, Expense
@@ -38,6 +40,7 @@ def create_app(config_class=Config):
     app.register_blueprint(users)
     app.register_blueprint(finData)
     app.register_blueprint(main)
+    
 
     @app.before_request
     def set_current_project():
