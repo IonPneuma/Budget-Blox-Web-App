@@ -1,9 +1,8 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <div class="container-fluid dashboard">
-  <div class="row mb-4">
-    <div class="col-md-6 col-lg-3 mb-3">
+  <div class="row mb-5">
+    <div class="col-sm-12 col-md-4">
       <div class="card bg-primary text-white h-100">
         <div class="card-body body1">
           <h5 class="card-title">Total Income</h5>
@@ -11,27 +10,19 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-3 mb-3">
+    <div class="col-sm-12 col-md-4">
       <div class="card bg-success text-white h-100">
         <div class="card-body body2">
-          <h5 class="card-title">Total Expenses</h5>
+          <h5 class="card-title">Total Allocation</h5>
           <h2 class="card-text" id="totalExpenses">Loading...</h2>
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-3 mb-3">
+    <div class="col-sm-12 col-md-4">
       <div class="card bg-info text-white h-100">
         <div class="card-body body3">
           <h5 class="card-title">Net Cash Flow</h5>
           <h2 class="card-text" id="netCashFlow">Loading...</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6 col-lg-3 mb-3">
-      <div class="card bg-warning text-dark h-100">
-        <div class="card-body body4">
-          <h5 class="card-title">Currency</h5>
-          <h2 class="card-text" id="currencySymbol">Loading...</h2>
         </div>
       </div>
     </div>
@@ -46,43 +37,43 @@
             <span class="text-primary">Income</span>
           </h4>
           <div class="col-sm-6">
-            {{ income_form.title_income.label(class="form-control-label") }}
-            {% if income_form.title_income.errors %}
-              {{ income_form.title_income(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in income_form.title_income.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ income_form.title_income(class="form-control form-control-lg") }}
-            {% endif %}
+            {{ income_form.title_income.label(class="form-control-label") }} {%
+            if income_form.title_income.errors %} {{
+            income_form.title_income(class="form-control form-control-lg
+            is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in income_form.title_income.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+            {% else %} {{ income_form.title_income(class="form-control
+            form-control-lg") }} {% endif %}
           </div>
           <div class="col-sm-6">
-            {{ income_form.amount_income.label(class="form-control-label") }}
-            {% if income_form.amount_income.errors %}
-              {{ income_form.amount_income(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in income_form.amount_income.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ income_form.amount_income(class="form-control form-control-lg") }}
-            {% endif %}
+            {{ income_form.amount_income.label(class="form-control-label") }} {%
+            if income_form.amount_income.errors %} {{
+            income_form.amount_income(class="form-control form-control-lg
+            is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in income_form.amount_income.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+            {% else %} {{ income_form.amount_income(class="form-control
+            form-control-lg") }} {% endif %}
           </div>
           <div class="col-sm-6">
-            {{ income_form.date_income.label(class="form-control-label") }}
-            {% if income_form.date_income.errors %}
-              {{ income_form.date_income(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in income_form.date_income.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ income_form.date_income(class="form-control form-control-lg") }}
-            {% endif %}
+            {{ income_form.date_income.label(class="form-control-label") }} {%
+            if income_form.date_income.errors %} {{
+            income_form.date_income(class="form-control form-control-lg
+            is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in income_form.date_income.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+            {% else %} {{ income_form.date_income(class="form-control
+            form-control-lg") }} {% endif %}
           </div>
           <div class="input-group">
             {{ income_form.submit_income(class="btn btn-secondary") }}
@@ -108,102 +99,120 @@
             <tr data-income-id="{{ income.id }}">
               <td>{{ loop.index }}</td>
               <td>{{ income.title_income }}</td>
-              <td>{{ format_currency(income['amount_income'], income['currency']) }}</td>
+              <td>
+                {{ format_currency(income['amount_income'], project.currency) }}
+              </td>
               <td>{{ income.date_income }}</td>
               <td>
-                <button class="btn btn-danger btn-sm delete-income" data-id="{{ income.id }}">Delete</button>
+                <button
+                  class="btn btn-danger btn-sm delete-income"
+                  data-id="{{ income.id }}"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
         {% if incomes|length > 8 %}
-        <button class="btn btn-primary" onclick="showAllIncomeRecords()">Show All Records</button>
+        <button class="btn btn-primary" onclick="showAllIncomeRecords()">
+          Show All Records
+        </button>
         {% endif %}
       </div>
     </div>
     <div class="col-md-7 col-lg-8 border-cashflow">
-      <form method="POST" action="{{ url_for('finData.cash_income') }}">
+      <h4 class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-primary-expenses">Allocation</span>
+      </h4>
+
+      <div class="btn-group mb-3" role="group" aria-label="Expense types">
+        <button
+          type="button"
+          class="btn btn-outline-primary active"
+          id="expensesBtn"
+        >
+          Expenses
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="savingsBtn">
+          Savings/Aims
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          id="investmentsBtn"
+        >
+          Investments
+        </button>
+      </div>
+
+      <div id="expensesForm">
+        <!-- Keep the existing expense form here -->
         {{ expense_form.hidden_tag() }}
         <div class="row g-3">
-          <h2 class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-primary-expenses">Expenses</span>
-          </h2>
-          <div class="col-sm-6">
-            {{ expense_form.title_expense.label(class="form-control-label") }}
-            {% if expense_form.title_expense.errors %}
-              {{ expense_form.title_expense(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in expense_form.title_expense.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ expense_form.title_expense(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-          <div class="col-sm-6">
-            {{ expense_form.amount_expense.label(class="form-control-label") }}
-            {% if expense_form.amount_expense.errors %}
-              {{ expense_form.amount_expense(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in expense_form.amount_expense.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ expense_form.amount_expense(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-          <div class="col-sm-6">
-            {{ expense_form.date_expense.label(class="form-control-label") }}
-            {% if expense_form.date_expense.errors %}
-              {{ expense_form.date_expense(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                {% for error in expense_form.date_expense.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ expense_form.date_expense(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-          <div class="input-group">
-            {{ expense_form.submit_expense(class="btn btn-secondary") }}
-          </div>
-          <hr class="my-4" />
+          <!-- ... existing expense form fields ... -->
         </div>
-      </form>
-      <h2>Latest Expenses Records</h2>
-      <div class="table-responsive small">
-        <table class="table table-striped table-sm" id="expenseTable">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Expense</th>
-              <th scope="col">Amount</th>
-              <th scope="col">Date</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for expense in expenses[:8] %}
-            <tr data-expense-id="{{ expense.id }}">
-              <td>{{ loop.index }}</td>
-              <td>{{ expense.title_expense }}</td>
-              <td>{{ format_currency(expense['amount_expense'], expense['currency']) }}</td>
-              <td>{{ expense.date_expense }}</td>
-              <td>
-                <button class="btn btn-danger btn-sm delete-expense" data-id="{{ expense.id }}">Delete</button>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% if expenses|length > 8 %}
-        <button class="btn btn-primary" onclick="showAllExpenseRecords()">Show All Records</button>
-        {% endif %}
       </div>
+
+      <div id="savingsForm" style="display: none">
+        <!-- Add savings form here (similar to expense form) -->
+        <form method="POST">
+          {{ savings_form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-sm-6">
+              {{ savings_form.title_savings.label(class="form-control-label") }}
+              {{ savings_form.title_savings(class="form-control
+              form-control-lg") }}
+            </div>
+            <div class="col-sm-6">
+              {{ savings_form.amount_savings.label(class="form-control-label")
+              }} {{ savings_form.amount_savings(class="form-control
+              form-control-lg") }}
+            </div>
+            <div class="col-sm-6">
+              {{ savings_form.date_savings.label(class="form-control-label") }}
+              {{ savings_form.date_savings(class="form-control form-control-lg")
+              }}
+            </div>
+            <div class="input-group">
+              {{ savings_form.submit_savings(class="btn btn-secondary") }}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="investmentsForm" style="display: none">
+        <!-- Add investments form here -->
+        <form method="POST">
+          {{ investments_form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-sm-6">
+              {{ investments_form.stock.label(class="form-control-label") }} {{
+              investments_form.stock(class="form-control form-control-lg") }}
+            </div>
+            <div class="col-sm-6">
+              {{
+              investments_form.amount_investment.label(class="form-control-label")
+              }} {{ investments_form.amount_investment(class="form-control
+              form-control-lg") }}
+            </div>
+            <div class="col-sm-6">
+              {{
+              investments_form.date_investment.label(class="form-control-label")
+              }} {{ investments_form.date_investment(class="form-control
+              form-control-lg") }}
+            </div>
+            <div class="input-group">
+              {{ investments_form.submit_investment(class="btn btn-secondary")
+              }}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Keep the existing expenses records table here -->
+      <h2 class="mt-4">Latest Allocation Records</h2>
     </div>
   </div>
 </div>
@@ -232,10 +241,18 @@
               <tr data-income-id="{{ income.id }}">
                 <td>{{ loop.index }}</td>
                 <td>{{ income.title_income }}</td>
-                <td>{{ format_currency(income['amount_income'], income['currency']) }}</td>
+                <td>
+                  {{ format_currency(income['amount_income'], project.currency)
+                  }}
+                </td>
                 <td>{{ income.date_income }}</td>
                 <td>
-                  <button class="btn btn-danger btn-sm delete-income" data-id="{{ income.id }}">Delete</button>
+                  <button
+                    class="btn btn-danger btn-sm delete-income"
+                    data-id="{{ income.id }}"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
               {% endfor %}
@@ -244,7 +261,13 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeAllIncomeRecordsModal()">Close</button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeAllIncomeRecordsModal()"
+        >
+          Close
+        </button>
       </div>
     </div>
   </div>
@@ -274,10 +297,18 @@
               <tr data-expense-id="{{ expense.id }}">
                 <td>{{ loop.index }}</td>
                 <td>{{ expense.title_expense }}</td>
-                <td>{{ format_currency(expense['amount_expense'], expense['currency']) }}</td>
+                <td>
+                  {{ format_currency(expense['amount_expense'],
+                  expense['currency']) }}
+                </td>
                 <td>{{ expense.date_expense }}</td>
                 <td>
-                  <button class="btn btn-danger btn-sm delete-expense" data-id="{{ expense.id }}">Delete</button>
+                  <button
+                    class="btn btn-danger btn-sm delete-expense"
+                    data-id="{{ expense.id }}"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
               {% endfor %}
@@ -286,7 +317,13 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeAllExpenseRecordsModal()">Close</button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeAllExpenseRecordsModal()"
+        >
+          Close
+        </button>
       </div>
     </div>
   </div>

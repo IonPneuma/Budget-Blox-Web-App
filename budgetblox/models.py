@@ -4,8 +4,9 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask import current_app
 from flask_login import UserMixin
 from babel.numbers import format_currency
-from budgetblox import db
+from budgetblox import db, login_manager
 
+@login_manager.user_loader
 def load_user(user_id):
     from budgetblox import db, login_manager  # Local import to avoid circular import issues
     return User.query.get(int(user_id))
@@ -42,6 +43,8 @@ class Project(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     incomes = db.relationship('Income', backref='project', lazy=True, cascade="all, delete-orphan")
     expenses = db.relationship('Expense', backref='project', lazy=True, cascade="all, delete-orphan")
+    savings = db.relationship('Savings', backref='project', lazy=True, cascade="all, delete-orphan")
+    investments = db.relationship('Investment', backref='project', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, name, currency, owner):
         self.name = name
@@ -96,3 +99,48 @@ class Expense(db.Model):
 
     def __repr__(self):
         return f"Expense('{self.title_expense}', '{self.amount_expense}', Project ID: '{self.project_id}')"
+
+
+class Savings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title_savings = db.Column(db.String(100), nullable=False)
+    amount_savings = db.Column(db.Float, nullable=False)
+    date_savings = db.Column(db.Date, nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title_savings': self.title_savings,
+            'amount_savings': float(self.amount_savings),
+            'date_savings': self.date_savings.isoformat() if self.date_savings else None,
+            'project_id': self.project_id
+        }
+
+    def format_amount(self):
+        return format_currency(self.amount_savings, self.project.currency)
+
+    def __repr__(self):
+        return f"Savings('{self.title_savings}', '{self.amount_savings}', Project ID: '{self.project_id}')"
+
+class Investment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    stock = db.Column(db.String(10), nullable=False)  # Stock symbol
+    amount_investment = db.Column(db.Float, nullable=False)
+    date_investment = db.Column(db.Date, nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'stock': self.stock,
+            'amount_investment': float(self.amount_investment),
+            'date_investment': self.date_investment.isoformat() if self.date_investment else None,
+            'project_id': self.project_id
+        }
+
+    def format_amount(self):
+        return format_currency(self.amount_investment, self.project.currency)
+
+    def __repr__(self):
+        return f"Investment('{self.stock}', '{self.amount_investment}', Project ID: '{self.project_id}')"

@@ -18,7 +18,7 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        project = Project(name="Default Project", owner=user)
+        project = Project(name="Default Project", currency="GBP", owner=user)  # Added currency here
         db.session.add(project)
         db.session.commit()
         session['selected_project_id'] = project.id

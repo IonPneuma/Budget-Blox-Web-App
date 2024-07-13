@@ -63,10 +63,8 @@ th svg.bi {
   vertical-align: middle;
 }
 
-.chart-container {
-  position: relative;
-  height: 300px;
-  width: 100%;
+#createProject {
+  color: #f84b4b;
 }
 
 

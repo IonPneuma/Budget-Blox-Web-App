@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_required, current_user
 from budgetblox import db
-from budgetblox.models import Income, Expense, Project
-from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, ProjectForm, UpdateProjectForm
+from budgetblox.models import Income, Expense, Investment, Project, Savings
+from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, InvestmentsForm, ProjectForm, SavingsForm, UpdateProjectForm
 from datetime import datetime
 from sqlalchemy.orm import joinedload
+from budgetblox.currency_utils import get_currency_symbol, format_currency
 
 
 finData = Blueprint('finData', __name__)
@@ -34,6 +35,8 @@ def cash_income():
 
     income_form = IncomeForm()
     expense_form = ExpenseForm()
+    savings_form = SavingsForm()
+    investments_form = InvestmentsForm()
     
     if income_form.validate_on_submit():
         income = Income(
@@ -62,13 +65,43 @@ def cash_income():
     incomes = Income.query.filter_by(project_id=current_project.id).all()
     expenses = Expense.query.filter_by(project_id=current_project.id).all()
 
+    if savings_form.validate_on_submit():
+        savings = Savings(
+            title_savings=savings_form.title_savings.data,
+            amount_savings=savings_form.amount_savings.data,
+            date_savings=savings_form.date_savings.data,
+            project_id=current_project.id
+        )
+        db.session.add(savings)
+        db.session.commit()
+        flash('Savings added successfully!', 'success')
+        return redirect(url_for('finData.cash_income'))
+
+    if investments_form.validate_on_submit():
+        investment = Investment(
+            stock=investments_form.stock.data,
+            amount_investment=investments_form.amount_investment.data,
+            date_investment=investments_form.date_investment.data,
+            project_id=current_project.id
+        )
+        db.session.add(investment)
+        db.session.commit()
+        flash('Investment added successfully!', 'success')
+        return redirect(url_for('finData.cash_income'))
+    
+    savings = Savings.query.filter_by(project_id=current_project.id).all()
+    investment = Investment.query.filter_by(project_id=current_project.id).all()
+
     return render_template('cashflow.html', 
                            title='Cash', 
                            income_form=income_form, 
-                           expense_form=expense_form, 
+                           expense_form=expense_form,
+                           savings_form=savings_form,
+                           investments_form=investments_form,
                            incomes=incomes, 
                            expenses=expenses,
                            project=current_project)
+
 
 @finData.context_processor
 def inject_project_info():
@@ -78,6 +111,11 @@ def inject_project_info():
         current_project = next((p for p in projects if p.id == selected_project_id), projects[0] if projects else None)
         return dict(projects=projects, current_project=current_project)
     return dict()
+
+@finData.context_processor
+def utility_processor():
+    return dict(get_currency_symbol=get_currency_symbol)
+
 
 @finData.route("/create_project", methods=['GET', 'POST'])
 @login_required
@@ -133,21 +171,53 @@ def delete_project(project_id):
     
     return redirect(url_for('finData.create_project'))
 
+from flask import jsonify, request, flash, redirect, url_for, render_template
+
+
+
 @finData.route("/update_project/<int:project_id>", methods=['POST'])
 @login_required
 def update_project(project_id):
     project = db.session.get(Project, project_id)
     if project and project.owner == current_user:
-        form = UpdateProjectForm()
+        form = UpdateProjectForm(obj=project)
         if form.validate_on_submit():
             project.name = form.name.data
+            project.currency = form.currency.data
             db.session.commit()
-            flash(f'Project "{project.name}" has been updated.', 'success')
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': True,
+                    'name': project.name,
+                    'currency': project.currency,
+                    'currency_symbol': get_currency_symbol(project.currency)
+                })
+            else:
+                flash(f'Project "{project.name}" has been updated.', 'success')
         else:
-            flash('Failed to update project. Please try again.', 'danger')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': False,
+                    'error': form.errors
+                })
+            else:
+                flash(f'Failed to update project. Errors: {form.errors}', 'danger')
     else:
-        flash('Project not found or unauthorized action.', 'danger')
-    return redirect(url_for('finData.create_project'))
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': False,
+                'error': 'Project not found or unauthorized action'
+            })
+        else:
+            flash('Project not found or unauthorized action.', 'danger')
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': False, 'error': 'Unknown error occurred'})
+    else:
+        return redirect(url_for('finData.create_project'))
+    
+
 
 @finData.route("/api/financial_data")
 @login_required
@@ -168,10 +238,9 @@ def get_financial_data():
     total_expenses = sum(expense.amount_expense for expense in expenses)
 
     data = {
-        'totalIncome': f"{project.currency} {total_income:.2f}",
-        'totalExpenses': f"{project.currency} {total_expenses:.2f}",
-        'currencySymbol': f"{project.currency}",
-        'netCashFlow': f"{project.currency} {(total_income - total_expenses):.2f}",
+        'totalIncome': format_currency(total_income, project.currency),
+        'totalExpenses': format_currency(total_expenses, project.currency),
+        'netCashFlow': format_currency((total_income - total_expenses), project.currency),
         'incomes': [income.to_dict() for income in incomes],
         'expenses': [expense.to_dict() for expense in expenses]
     }
