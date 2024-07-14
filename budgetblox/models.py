@@ -84,14 +84,8 @@ class Expense(db.Model):
     date_expense = db.Column(db.Date, nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title_expense': self.title_expense,
-            'amount_expense': float(self.amount_expense),
-            'date_expense': self.date_expense.isoformat() if self.date_expense else None,
-            'project_id': self.project_id
-        }
+    def __repr__(self):
+        return f"Expense('{self.title_expense}', '{self.amount_expense}', '{self.date_expense}')"
 
     # Consider adding a format_amount method similar to the Income model
     def format_amount(self):

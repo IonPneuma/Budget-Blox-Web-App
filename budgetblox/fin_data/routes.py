@@ -59,12 +59,19 @@ def cash_income():
         )
         db.session.add(expense)
         db.session.commit()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': True,
+                'expense': {
+                    'title_expense': expense.title_expense,
+                    'amount_expense': format_currency(expense.amount_expense, current_project.currency),
+                    'date_expense': expense.date_expense.strftime('%Y-%m-%d')
+                }
+            })
         flash('Expense added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
 
-    incomes = Income.query.filter_by(project_id=current_project.id).all()
-    expenses = Expense.query.filter_by(project_id=current_project.id).all()
-
+    
     if savings_form.validate_on_submit():
         savings = Savings(
             title_savings=savings_form.title_savings.data,
@@ -89,8 +96,11 @@ def cash_income():
         flash('Investment added successfully!', 'success')
         return redirect(url_for('finData.cash_income'))
     
-    savings = Savings.query.filter_by(project_id=current_project.id).all()
-    investment = Investment.query.filter_by(project_id=current_project.id).all()
+    incomes = Income.query.filter_by(project_id=current_project.id).all()
+    expenses = Expense.query.filter_by(project_id=current_project.id).order_by(Expense.date_expense.desc()).all()
+    savings = Savings.query.filter_by(project_id=current_project.id).order_by(Savings.date_savings.desc()).all()
+    investments = Investment.query.filter_by(project_id=current_project.id).order_by(Investment.date_investment.desc()).all()
+
 
     return render_template('cashflow.html', 
                            title='Cash', 
@@ -100,6 +110,8 @@ def cash_income():
                            investments_form=investments_form,
                            incomes=incomes, 
                            expenses=expenses,
+                           savings=savings,
+                           investments=investments,
                            project=current_project)
 
 
