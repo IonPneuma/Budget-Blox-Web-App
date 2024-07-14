@@ -65,9 +65,9 @@ class Income(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'title_income': self.title_income,
-            'amount_income': float(self.amount_income),  # Convert to float for JSON serialization
-            'date_income': self.date_income.isoformat() if self.date_income else None,
+            'title': self.title_income,
+            'amount': format_currency(self.amount_income, self.project.currency),  # Convert to float for JSON serialization
+            'date': self.date_income.isoformat() if self.date_income else None,
             'project_id': self.project_id
         }
 
@@ -83,6 +83,15 @@ class Expense(db.Model):
     amount_expense = db.Column(db.Float, nullable=False)
     date_expense = db.Column(db.Date, nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title_expense': self.title_expense,
+            'amount_expense': float(self.amount_expense),
+            'date_expense': self.date_expense.isoformat() if self.date_expense else None,
+            'project_id': self.project_id
+        }
 
     def __repr__(self):
         return f"Expense('{self.title_expense}', '{self.amount_expense}', '{self.date_expense}')"

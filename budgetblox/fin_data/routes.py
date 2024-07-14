@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, current_app, session
+from flask import Blueprint, app, jsonify, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_required, current_user
 from budgetblox import db
 from budgetblox.models import Income, Expense, Investment, Project, Savings
@@ -6,7 +6,7 @@ from budgetblox.fin_data.forms import IncomeForm, ExpenseForm, InvestmentsForm, 
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 from budgetblox.currency_utils import get_currency_symbol, format_currency
-
+import traceback
 
 finData = Blueprint('finData', __name__)
 
@@ -234,28 +234,81 @@ def update_project(project_id):
 @finData.route("/api/financial_data")
 @login_required
 def get_financial_data():
-    project_id = session.get('selected_project_id')
-    
-    if not project_id:
-        return jsonify({'error': 'No project selected'}), 400
-    
-    project = Project.query.get(project_id)
-    if not project:
-        return jsonify({'error': 'Project not found'}), 404
-    
-    incomes = Income.query.filter_by(project_id=project_id).all()
-    expenses = Expense.query.filter_by(project_id=project_id).all()
-    
-    total_income = sum(income.amount_income for income in incomes)
-    total_expenses = sum(expense.amount_expense for expense in expenses)
+    try:
+        project_id = session.get('selected_project_id')
+        
+        if not project_id:
+            return jsonify({'error': 'No project selected'}), 400
+        
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({'error': 'Project not found'}), 404
+        
+        incomes = Income.query.filter_by(project_id=project_id).all()
+        expenses = Expense.query.filter_by(project_id=project_id).all()
+        
+        total_income = sum(income.amount_income for income in incomes)
+        total_expenses = sum(expense.amount_expense for expense in expenses)
+        net_cash_flow = total_income - total_expenses
+        
 
-    data = {
-        'totalIncome': format_currency(total_income, project.currency),
-        'totalExpenses': format_currency(total_expenses, project.currency),
-        'netCashFlow': format_currency((total_income - total_expenses), project.currency),
-        'incomes': [income.to_dict() for income in incomes],
-        'expenses': [expense.to_dict() for expense in expenses]
-    }
+        data = {
+            'totalIncome': f"{total_income:.2f}",
+            'totalExpenses': f"{total_expenses:.2f}",
+            'netCashFlow': f"{net_cash_flow:.2f}",
+            'incomes': [income.to_dict() for income in incomes],
+            'expenses': [expense.to_dict() for expense in expenses]
+        }
+        
+        return jsonify(data)
     
-    return jsonify(data)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_financial_data: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({"error": "Internal server error"}), 500
+    
 
+
+@finData.route("/delete_income/<int:record_id>", methods=['POST'])
+@login_required
+def delete_income(record_id):
+    try:
+        income = Income.query.get_or_404(record_id)
+        if income.project.owner != current_user:
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+        db.session.delete(income)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        current_app.logger.error(f"Error in get_financial_data: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@finData.route("/delete_expense/<int:record_id>", methods=['POST'])
+@login_required
+def delete_expense(record_id):
+    expense = Expense.query.get_or_404(record_id)
+    if expense.project.owner != current_user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    db.session.delete(expense)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@finData.route("/delete_savings/<int:record_id>", methods=['POST'])
+@login_required
+def delete_savings(record_id):
+    savings = Savings.query.get_or_404(record_id)
+    if savings.project.owner != current_user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    db.session.delete(savings)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@finData.route("/delete_investment/<int:record_id>", methods=['POST'])
+@login_required
+def delete_investment(record_id):
+    investment = Investment.query.get_or_404(record_id)
+    if investment.project.owner != current_user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    db.session.delete(investment)
+    db.session.commit()
+    return jsonify({'success': True})

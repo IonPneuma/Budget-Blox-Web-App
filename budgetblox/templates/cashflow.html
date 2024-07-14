@@ -104,12 +104,7 @@
               </td>
               <td>{{ income.date_income }}</td>
               <td>
-                <button
-                  class="btn btn-danger btn-sm delete-income"
-                  data-id="{{ income.id }}"
-                >
-                  Delete
-                </button>
+                <button class="btn btn-danger btn-sm delete-record" data-type="income" data-id="{{ income.id }}">Delete</button>
               </td>
             </tr>
             {% endfor %}
@@ -292,7 +287,7 @@
                               {% endif %}
                           </td>
                           <td>
-                              <button class="btn btn-danger btn-sm">Delete</button>
+                            <button class="btn btn-danger btn-sm delete-record" data-type="{{ record.__class__.__name__.lower() }}" data-id="{{ record.id }}">Delete</button>
                           </td>
                       </tr>
                   {% endfor %}
