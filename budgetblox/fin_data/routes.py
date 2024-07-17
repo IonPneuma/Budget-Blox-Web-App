@@ -246,18 +246,28 @@ def get_financial_data():
         
         incomes = Income.query.filter_by(project_id=project_id).all()
         expenses = Expense.query.filter_by(project_id=project_id).all()
+        savings = Savings.query.filter_by(project_id=project_id).all()
+        investments = Investment.query.filter_by(project_id=project_id).all()
         
         total_income = sum(income.amount_income for income in incomes)
         total_expenses = sum(expense.amount_expense for expense in expenses)
-        net_cash_flow = total_income - total_expenses
+        total_savings = sum(saving.amount_savings for saving in savings)
+        total_investments = sum(investment.amount_investment for investment in investments)
         
+        total_allocation = total_expenses + total_savings + total_investments
+        net_cash_flow = total_income - total_allocation
 
         data = {
-            'totalIncome': f"{total_income:.2f}",
-            'totalExpenses': f"{total_expenses:.2f}",
-            'netCashFlow': f"{net_cash_flow:.2f}",
+            'totalIncome': format_currency(total_income, project.currency),
+            'totalAllocation': format_currency(total_allocation, project.currency),
+            'totalExpenses': format_currency(total_expenses, project.currency),
+            'totalSavings': format_currency(total_savings, project.currency),
+            'totalInvestments': format_currency(total_investments, project.currency),
+            'netCashFlow': format_currency(net_cash_flow, project.currency),
             'incomes': [income.to_dict() for income in incomes],
-            'expenses': [expense.to_dict() for expense in expenses]
+            'expenses': [expense.to_dict() for expense in expenses],
+            'savings': [saving.to_dict() for saving in savings],
+            'investments': [investment.to_dict() for investment in investments]
         }
         
         return jsonify(data)

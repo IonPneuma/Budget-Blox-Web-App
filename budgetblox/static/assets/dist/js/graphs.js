@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Update UI elements
             document.getElementById('totalIncome').textContent = data.totalIncome;
-            document.getElementById('totalExpenses').textContent = data.totalExpenses;
+            document.getElementById('totalAllocation').textContent = data.totalAllocation;
             document.getElementById('netCashFlow').textContent = data.netCashFlow;
             
             // Update income and expense tables
@@ -193,3 +193,77 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call updateDashboard when the page loads
     updateDashboard();
 });
+
+console.log('graphs.js loaded');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    initializePagination();
+});
+
+function initializePagination() {
+    console.log('Initializing pagination...');
+    
+    const tables = [
+        { tableId: 'incomeTable', paginationId: 'incomePagination' },
+        { tableId: 'allocationTable', paginationId: 'allocationPagination' }
+    ];
+
+    tables.forEach(({ tableId, paginationId }) => {
+        const table = document.getElementById(tableId);
+        const paginationElement = document.getElementById(paginationId);
+        
+        if (table && paginationElement) {
+            console.log(`Found table and pagination for ${tableId}`);
+            const rows = table.querySelectorAll('tbody tr');
+            console.log(`Number of rows in ${tableId}: ${rows.length}`);
+            
+            if (rows.length > 8) {
+                console.log(`Applying pagination to ${tableId}`);
+                applyPagination(rows, paginationElement);
+            } else {
+                console.log(`No pagination needed for ${tableId}`);
+            }
+        } else {
+            console.warn(`Table or pagination not found for ${tableId}`);
+        }
+    });
+}
+
+function applyPagination(rows, paginationElement) {
+    const rowsPerPage = 8;
+    const pageCount = Math.ceil(rows.length / rowsPerPage);
+    let currentPage = 1;
+
+    function showPage(page) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        rows.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+        currentPage = page;
+        updatePaginationButtons();
+    }
+
+    function updatePaginationButtons() {
+        paginationElement.innerHTML = '';
+        for (let i = 1; i <= pageCount; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            const a = document.createElement('a');
+            a.className = 'page-link';
+            a.href = '#';
+            a.textContent = i;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage(i);
+            });
+            li.appendChild(a);
+            paginationElement.appendChild(li);
+        }
+    }
+
+    showPage(1);
+}
+
+// Existing updateDashboard function and other code...
