@@ -87,41 +87,55 @@
       <div class="table-responsive small">
         <table class="table" id="incomeTable">
           <thead>
-              <tr>
-                  <th>#</th>
-                  <th>Income</th>
-                  <th>Amount</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-              </tr>
+            <tr>
+              <th>#</th>
+              <th>Income</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
-              {% for income in incomes %}
-              <tr class="income-row">
-                  <td>{{ loop.index }}</td>
-                  <td>{{ income.title_income }}</td>
-                  <td>{{ format_currency(income['amount_income'], project.currency) }}</td>
-                  <td>{{ income.date_income }}</td>
-                  <td>
-                      <button class="btn btn-danger btn-sm delete-record" data-type="income" data-id="{{ income.id }}">Delete</button>
-                  </td>
-              </tr>
-              {% endfor %}
+            {% for income in incomes %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ income.title_income }}</td>
+              <td>
+                {{ format_currency(income['amount_income'], project.currency) }}
+              </td>
+              <td>{{ income.date_income }}</td>
+              <td>
+                <button
+                  class="btn btn-danger btn-sm delete-record"
+                  data-type="income"
+                  data-id="{{ income.id }}"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
           </tbody>
-      </table>
+        </table>
       </div>
-            
-      <!-- Income Pagination -->
+
       <nav aria-label="Income pagination" class="mt-3">
-        <ul class="pagination justify-content-center" id="incomePagination"></ul>
+        <ul
+          class="pagination justify-content-center"
+          id="incomePagination"
+        ></ul>
       </nav>
 
       {% if incomes|length > 8 %}
-      <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#allRecordsIncomeModal">
-           Show All Income Records
+      <button
+        class="btn btn-primary mt-3"
+        data-bs-toggle="modal"
+        data-bs-target="#allRecordsIncomeModal"
+      >
+        Show All Income Records
       </button>
       {% endif %}
-  </div>
+    </div>
     <!-- Allocation Section -->
     <div class="col-md-7 col-lg-8 border-cashflow">
       <h4 class="d-flex justify-content-between align-items-center mb-3">
@@ -232,205 +246,248 @@
 
       <!-- Keep the existing expenses records table here -->
       <h2 class="mt-4">Latest Allocation Records</h2>
-            <div class="table-responsive small">
-                <table class="table" id="allocationTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Title</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set combined_records = [] %}
-                        {% if expenses is defined %}{% set combined_records = combined_records + expenses %}{% endif %}
-                        {% if savings is defined %}{% set combined_records = combined_records + savings %}{% endif %}
-                        {% if investments is defined %}{% set combined_records = combined_records + investments %}{% endif %}
-                        {% set sorted_records = combined_records | sort(attribute='date', reverse=True) %}
-                        {% for record in sorted_records %}
-                        <tr class="allocation-row {% if loop.index > 8 %}d-none{% endif %}">
-                            <td>{{ loop.index }}</td>
-                            <td>
-                                {% if record.__class__.__name__ == 'Expense' %}
-                                    {{ record.title_expense }}
-                                {% elif record.__class__.__name__ == 'Savings' %}
-                                    {{ record.title_savings }}
-                                {% elif record.__class__.__name__ == 'Investment' %}
-                                    {{ record.stock }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if record.__class__.__name__ == 'Expense' %}
-                                    {{ format_currency(record.amount_expense, project.currency) }}
-                                {% elif record.__class__.__name__ == 'Savings' %}
-                                    {{ format_currency(record.amount_savings, project.currency) }}
-                                {% elif record.__class__.__name__ == 'Investment' %}
-                                    {{ format_currency(record.amount_investment, project.currency) }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if record.__class__.__name__ == 'Expense' %}
-                                    {{ record.date_expense }}
-                                {% elif record.__class__.__name__ == 'Savings' %}
-                                    {{ record.date_savings }}
-                                {% elif record.__class__.__name__ == 'Investment' %}
-                                    {{ record.date_investment }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if record.__class__.__name__ == 'Expense' %}
-                                    Expense
-                                {% elif record.__class__.__name__ == 'Savings' %}
-                                    Savings/Aims
-                                {% elif record.__class__.__name__ == 'Investment' %}
-                                    Investment
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="btn btn-danger btn-sm delete-record" data-type="{{ record.__class__.__name__.lower() }}" data-id="{{ record.id }}">Delete</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+      <div class="table-responsive small">
+        <table class="table" id="allocationTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set combined_records = (expenses or []) + (savings or []) +
+            (investments or []) %} {% for record in combined_records |
+            sort(attribute='date', reverse=True) %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>
+                {% if record.__class__.__name__ == 'Expense' %} {{
+                record.title_expense }} {% elif record.__class__.__name__ ==
+                'Savings' %} {{ record.title_savings }} {% elif
+                record.__class__.__name__ == 'Investment' %} {{ record.stock }}
+                {% endif %}
+              </td>
+              <td>
+                {% if record.__class__.__name__ == 'Expense' %} {{
+                format_currency(record.amount_expense, project.currency) }} {%
+                elif record.__class__.__name__ == 'Savings' %} {{
+                format_currency(record.amount_savings, project.currency) }} {%
+                elif record.__class__.__name__ == 'Investment' %} {{
+                format_currency(record.amount_investment, project.currency) }}
+                {% endif %}
+              </td>
+              <td>
+                {% if record.__class__.__name__ == 'Expense' %} {{
+                record.date_expense }} {% elif record.__class__.__name__ ==
+                'Savings' %} {{ record.date_savings }} {% elif
+                record.__class__.__name__ == 'Investment' %} {{
+                record.date_investment }} {% endif %}
+              </td>
+              <td>
+                {% if record.__class__.__name__ == 'Expense' %} Expense {% elif
+                record.__class__.__name__ == 'Savings' %} Savings/Aims {% elif
+                record.__class__.__name__ == 'Investment' %} Investment {% endif
+                %}
+              </td>
+              <td>
+                <button
+                  class="btn btn-danger btn-sm delete-record"
+                  data-type="{{ record.__class__.__name__.lower() }}"
+                  data-id="{{ record.id }}"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-            <!-- Allocation Pagination -->
-            <nav aria-label="Allocation pagination" class="mt-3">
-                <ul class="pagination justify-content-center" id="allocationPagination">
-                    <!-- Pagination will be dynamically populated by JavaScript -->
-                </ul>
-            </nav>
+      <nav aria-label="Allocation pagination" class="mt-3">
+        <ul
+          class="pagination justify-content-center"
+          id="allocationPagination"
+        ></ul>
+      </nav>
 
-            {% if combined_records|length > 8 %}
-            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#allRecordsAllocationModal">
-                Show All Allocation Records
-            </button>
-            {% endif %}
-        </div>
+      {% if combined_records|length > 8 %}
+      <button
+        class="btn btn-primary mt-3"
+        data-bs-toggle="modal"
+        data-bs-target="#allRecordsAllocationModal"
+      >
+        Show All Allocation Records
+      </button>
+      {% endif %}
     </div>
+  </div>
 </div>
 
 <!-- Income Modal -->
-<div class="modal fade" id="allRecordsIncomeModal" tabindex="-1" role="dialog" aria-labelledby="allRecordsIncomeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-primary" id="allRecordsIncomeModalLabel">All Income Records</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Income</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for income in incomes %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ income.title_income }}</td>
-                                <td>{{ format_currency(income['amount_income'], project.currency) }}</td>
-                                <td>{{ income.date_income }}</td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm delete-record" data-type="income" data-id="{{ income.id }}">Delete</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+<div
+  class="modal fade"
+  id="allRecordsIncomeModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="allRecordsIncomeModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-primary" id="allRecordsIncomeModalLabel">
+          All Income Records
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Income</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for income in incomes %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ income.title_income }}</td>
+                <td>
+                  {{ format_currency(income['amount_income'], project.currency)
+                  }}
+                </td>
+                <td>{{ income.date_income }}</td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm delete-record"
+                    data-type="income"
+                    data-id="{{ income.id }}"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Allocation Modal -->
-<div class="modal fade" id="allRecordsAllocationModal" tabindex="-1" role="dialog" aria-labelledby="allRecordsAllocationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-primary" id="allRecordsAllocationModalLabel">All Allocation Records</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Title</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in sorted_records %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>
-                                    {% if record.__class__.__name__ == 'Expense' %}
-                                        {{ record.title_expense }}
-                                    {% elif record.__class__.__name__ == 'Savings' %}
-                                        {{ record.title_savings }}
-                                    {% elif record.__class__.__name__ == 'Investment' %}
-                                        {{ record.stock }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if record.__class__.__name__ == 'Expense' %}
-                                        {{ format_currency(record.amount_expense, project.currency) }}
-                                    {% elif record.__class__.__name__ == 'Savings' %}
-                                        {{ format_currency(record.amount_savings, project.currency) }}
-                                    {% elif record.__class__.__name__ == 'Investment' %}
-                                        {{ format_currency(record.amount_investment, project.currency) }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if record.__class__.__name__ == 'Expense' %}
-                                        {{ record.date_expense }}
-                                    {% elif record.__class__.__name__ == 'Savings' %}
-                                        {{ record.date_savings }}
-                                    {% elif record.__class__.__name__ == 'Investment' %}
-                                        {{ record.date_investment }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if record.__class__.__name__ == 'Expense' %}
-                                        Expense
-                                    {% elif record.__class__.__name__ == 'Savings' %}
-                                        Savings/Aims
-                                    {% elif record.__class__.__name__ == 'Investment' %}
-                                        Investment
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm delete-record" data-type="{{ record.__class__.__name__.lower() }}" data-id="{{ record.id }}">Delete</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+<div
+  class="modal fade"
+  id="allRecordsAllocationModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="allRecordsAllocationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5
+          class="modal-title text-primary"
+          id="allRecordsAllocationModalLabel"
+        >
+          All Allocation Records
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in sorted_records %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  {% if record.__class__.__name__ == 'Expense' %} {{
+                  record.title_expense }} {% elif record.__class__.__name__ ==
+                  'Savings' %} {{ record.title_savings }} {% elif
+                  record.__class__.__name__ == 'Investment' %} {{ record.stock
+                  }} {% endif %}
+                </td>
+                <td>
+                  {% if record.__class__.__name__ == 'Expense' %} {{
+                  format_currency(record.amount_expense, project.currency) }} {%
+                  elif record.__class__.__name__ == 'Savings' %} {{
+                  format_currency(record.amount_savings, project.currency) }} {%
+                  elif record.__class__.__name__ == 'Investment' %} {{
+                  format_currency(record.amount_investment, project.currency) }}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if record.__class__.__name__ == 'Expense' %} {{
+                  record.date_expense }} {% elif record.__class__.__name__ ==
+                  'Savings' %} {{ record.date_savings }} {% elif
+                  record.__class__.__name__ == 'Investment' %} {{
+                  record.date_investment }} {% endif %}
+                </td>
+                <td>
+                  {% if record.__class__.__name__ == 'Expense' %} Expense {%
+                  elif record.__class__.__name__ == 'Savings' %} Savings/Aims {%
+                  elif record.__class__.__name__ == 'Investment' %} Investment
+                  {% endif %}
+                </td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm delete-record"
+                    data-type="{{ record.__class__.__name__.lower() }}"
+                    data-id="{{ record.id }}"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

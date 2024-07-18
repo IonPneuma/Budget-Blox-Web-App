@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block content %}
+<h1>All Income Records</h1>
+
+<div class="mb-3">
+  <input
+    type="text"
+    id="searchInput"
+    class="form-control"
+    placeholder="Search records..."
+  />
+</div>
+
+<div class="mb-3">
+  <label for="dateFrom" class="form-label">From:</label>
+  <input type="date" id="dateFrom" class="form-control" />
+  <label for="dateTo" class="form-label">To:</label>
+  <input type="date" id="dateTo" class="form-control" />
+  <button id="filterDates" class="btn btn-primary mt-2">Filter</button>
+</div>
+
+<table id="incomeTable" class="table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Title</th>
+      <th>Amount</th>
+      <th>Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for income in incomes %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ income.title_income }}</td>
+      <td>{{ income.amount_income }}</td>
+      <td>{{ income.date_income }}</td>
+      <td>
+        <button
+          class="btn btn-danger btn-sm delete-record"
+          data-type="income"
+          data-id="{{ income.id }}"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div id="pagination" class="mt-3">
+  <!-- Pagination will be added here by JavaScript -->
+</div>
+
+<button id="exportCSV" class="btn btn-success mt-3">Export to CSV</button>
+<button id="exportPDF" class="btn btn-success mt-3">Export to PDF</button>
+
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/allRecords.js') }}"
+></script>
+{% endblock %}

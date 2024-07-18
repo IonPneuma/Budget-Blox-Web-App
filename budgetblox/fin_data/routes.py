@@ -322,3 +322,29 @@ def delete_investment(record_id):
     db.session.delete(investment)
     db.session.commit()
     return jsonify({'success': True})
+
+
+@finData.route("/all_income_records")
+@login_required
+def all_income_records():
+    current_project = Project.query.get(session.get('selected_project_id'))
+    if not current_project:
+        flash('Please select a project first.', 'warning')
+        return redirect(url_for('finData.dashboard'))
+
+    incomes = Income.query.filter_by(project_id=current_project.id).all()
+    return render_template('all_income_records.html', incomes=incomes, project=current_project)
+
+@finData.route("/all_allocation_records")
+@login_required
+def all_allocation_records():
+    current_project = Project.query.get(session.get('selected_project_id'))
+    if not current_project:
+        flash('Please select a project first.', 'warning')
+        return redirect(url_for('finData.dashboard'))
+
+    expenses = Expense.query.filter_by(project_id=current_project.id).all()
+    savings = Savings.query.filter_by(project_id=current_project.id).all()
+    investments = Investment.query.filter_by(project_id=current_project.id).all()
+    allocations = expenses + savings + investments
+    return render_template('all_allocation_records.html', allocations=allocations, project=current_project)
