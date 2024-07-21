@@ -1,45 +1,34 @@
-import { showPage } from './tableOperations.js';
+export function setupPagination(tableSelector, rowsPerPage = 10) {
+    const table = document.querySelector(tableSelector);
+    if (!table) {
+        console.warn('Table not found for pagination');
+        return;
+    }
+    const rows = table.querySelectorAll('tbody tr');
+    const pageCount = Math.ceil(rows.length / rowsPerPage);
+    const pagination = document.getElementById('pagination');
+    if (!pagination) {
+        console.warn('Pagination container not found');
+        return;
+    }
 
-export function initializePagination() {
-    const tables = [
-        { tableId: 'incomeTable', paginationId: 'incomePagination' },
-        { tableId: 'allocationTable', paginationId: 'allocationPagination' }
-    ];
+    pagination.innerHTML = ''; // Clear existing pagination
 
-    tables.forEach(({ tableId, paginationId }) => {
-        updatePaginationForTable(tableId);
-        
-        const pagination = document.getElementById(paginationId);
-        if (pagination) {
-            pagination.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    e.preventDefault();
-                    const page = parseInt(e.target.dataset.page);
-                    showPage(tableId, page);
-                }
-            });
-        }
-    });
+    for (let i = 1; i <= pageCount; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.classList.add('btn', 'btn-outline-primary', 'me-1');
+        btn.addEventListener('click', () => showPage(i, rows, rowsPerPage));
+        pagination.appendChild(btn);
+    }
+
+    showPage(1, rows, rowsPerPage);
 }
 
-export function updatePaginationForTable(tableId) {
-    const table = document.getElementById(tableId);
-    const pagination = document.getElementById(tableId + 'Pagination');
-    if (table && pagination) {
-        const rowCount = table.querySelectorAll('tbody tr').length;
-        const pageCount = Math.ceil(rowCount / 8);
-        
-        pagination.innerHTML = '';
-        for (let i = 1; i <= pageCount; i++) {
-            const li = document.createElement('li');
-            li.className = 'page-item';
-            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
-            pagination.appendChild(li);
-        }
-        
-        const currentPage = parseInt(pagination.querySelector('.active')?.textContent) || 1;
-        const newPage = Math.min(currentPage, pageCount);
-        
-        showPage(tableId, newPage);
-    }
+export function showPage(page, rows, rowsPerPage) {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    rows.forEach((row, index) => {
+        row.style.display = (index >= start && index < end) ? '' : 'none';
+    });
 }

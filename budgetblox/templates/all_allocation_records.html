@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% block content %}
+
 <h1>All Allocation Records</h1>
 
 <div class="mb-3">
@@ -6,16 +7,13 @@
     type="text"
     id="searchInput"
     class="form-control"
-    placeholder="Search records..."
+    placeholder="Search..."
   />
 </div>
 
 <div class="mb-3">
-  <label for="dateFrom" class="form-label">From:</label>
-  <input type="date" id="dateFrom" class="form-control" />
-  <label for="dateTo" class="form-label">To:</label>
-  <input type="date" id="dateTo" class="form-control" />
-  <button id="filterDates" class="btn btn-primary mt-2">Filter</button>
+  <input type="date" id="dateFrom" /> to <input type="date" id="dateTo" />
+  <button id="filterDates" class="btn btn-primary">Filter</button>
 </div>
 
 <div class="mb-3">
@@ -27,7 +25,7 @@
   </select>
 </div>
 
-<table id="allocationTable" class="table">
+<table class="table table-striped">
   <thead>
     <tr>
       <th>#</th>
@@ -42,9 +40,29 @@
     {% for allocation in allocations %}
     <tr>
       <td>{{ loop.index }}</td>
-      <td>{{ allocation.title }}</td>
-      <td>{{ allocation.amount }}</td>
-      <td>{{ allocation.date }}</td>
+      <td>
+        {% if allocation.__class__.__name__ == 'Expense' %} {{
+        allocation.title_expense }} {% elif allocation.__class__.__name__ ==
+        'Savings' %} {{ allocation.title_savings }} {% elif
+        allocation.__class__.__name__ == 'Investment' %} {{ allocation.stock }}
+        {% endif %}
+      </td>
+      <td>
+        {% if allocation.__class__.__name__ == 'Expense' %} {{
+        format_currency(allocation.amount_expense, project.currency) }} {% elif
+        allocation.__class__.__name__ == 'Savings' %} {{
+        format_currency(allocation.amount_savings, project.currency) }} {% elif
+        allocation.__class__.__name__ == 'Investment' %} {{
+        format_currency(allocation.amount_investment, project.currency) }} {%
+        endif %}
+      </td>
+      <td>
+        {% if allocation.__class__.__name__ == 'Expense' %} {{
+        allocation.date_expense }} {% elif allocation.__class__.__name__ ==
+        'Savings' %} {{ allocation.date_savings }} {% elif
+        allocation.__class__.__name__ == 'Investment' %} {{
+        allocation.date_investment }} {% endif %}
+      </td>
       <td>{{ allocation.__class__.__name__ }}</td>
       <td>
         <button
@@ -60,15 +78,35 @@
   </tbody>
 </table>
 
-<div id="pagination" class="mt-3">
-  <!-- Pagination will be added here by JavaScript -->
-</div>
+<div id="pagination" class="mt-3"></div>
 
-<button id="exportCSV" class="btn btn-success mt-3">Export to CSV</button>
-<button id="exportPDF" class="btn btn-success mt-3">Export to PDF</button>
+<button id="exportCSV" class="btn btn-secondary">Export to CSV</button>
+<button id="exportPDF" class="btn btn-secondary">Export to PDF</button>
 
 <script
   type="module"
-  src="{{ url_for('static', filename='js/allRecords.js') }}"
+  src="{{ url_for('static', filename='assets/dist/js/allRecords.js') }}"
 ></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/utils.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/api.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/tableOperations.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/ajax.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/main.js') }}"
+></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 {% endblock %}

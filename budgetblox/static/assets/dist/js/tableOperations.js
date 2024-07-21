@@ -1,5 +1,9 @@
-import { fetchData, deleteRecord } from './api.js';
+import { deleteRecord, fetchData } from './api.js';
 import { showAlert } from './utils.js';
+
+
+let fullIncomeData = [];
+let fullAllocationData = [];
 
 export async function updateDashboard() {
     try {
@@ -9,18 +13,19 @@ export async function updateDashboard() {
             return;
         }
 
-        document.getElementById('totalIncome').textContent = data.totalIncome;
-        document.getElementById('totalAllocation').textContent = data.totalAllocation;
-        document.getElementById('netCashFlow').textContent = data.netCashFlow;
+        updateElement('totalIncome', data.totalIncome);
+        updateElement('totalAllocation', data.totalAllocation);
+        updateElement('netCashFlow', data.netCashFlow);
         
-        updateTable('incomeTable', data.incomes, 'income');
+        fullIncomeData = data.incomes;
+        updateTable('incomeTable', fullIncomeData, 'income', true);
         
-        const allocationData = [
+        fullAllocationData = [
             ...data.expenses.map(item => ({...item, type: 'Expense'})),
             ...data.savings.map(item => ({...item, type: 'Savings'})),
             ...data.investments.map(item => ({...item, type: 'Investment'}))
         ];
-        updateTable('allocationTable', allocationData, 'allocation');
+        updateTable('allocationTable', fullAllocationData, 'allocation', true);
 
         console.log("Dashboard update completed");
     } catch (error) {
@@ -29,48 +34,43 @@ export async function updateDashboard() {
     }
 }
 
-function updateTable(tableId, data, tableType) {
+export function updateTable(tableId, data, tableType, limitRows = true) {
     console.log(`Updating ${tableType} table with data:`, data);
     const tableBody = document.querySelector(`#${tableId} tbody`);
     if (tableBody) {
-        tableBody.innerHTML = data.map((item, index) => {
+        const displayedData = limitRows ? data.slice(0, 8) : data;
+        tableBody.innerHTML = displayedData.map((item, index) => {
+            let title, amount, date, type;
             if (tableType === 'income') {
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${item.title_income || item.title || ''}</td>
-                        <td>${item.amount_income || item.amount || ''}</td>
-                        <td>${item.date_income || item.date || ''}</td>
-                        <td><button class="btn btn-danger btn-sm delete-record" data-type="income" data-id="${item.id}">Delete</button></td>
-                    </tr>
-                `;
-            } else if (tableType === 'allocation') {
-                let title, amount, date;
-                if (item.type === 'Expense') {
-                    title = item.title_expense || item.title;
-                    amount = item.amount_expense || item.amount;
-                    date = item.date_expense || item.date;
-                } else if (item.type === 'Savings') {
-                    title = item.title_savings || item.title;
-                    amount = item.amount_savings || item.amount;
-                    date = item.date_savings || item.date;
-                } else if (item.type === 'Investment') {
-                    title = item.stock || item.title;
-                    amount = item.amount_investment || item.amount;
-                    date = item.date_investment || item.date;
-                }
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${title || ''}</td>
-                        <td>${amount || ''}</td>
-                        <td>${date || ''}</td>
-                        <td>${item.type || ''}</td>
-                        <td><button class="btn btn-danger btn-sm delete-record" data-type="${item.type.toLowerCase()}" data-id="${item.id}">Delete</button></td>
-                    </tr>
-                `;
+                title = item.title_income || item.title || '';
+                amount = item.amount_income || item.amount || '';
+                date = item.date_income || item.date || '';
+                type = 'Income';
+            } else {
+                title = item.title_expense || item.title_savings || item.stock || item.title || '';
+                amount = item.amount_expense || item.amount_savings || item.amount_investment || item.amount || '';
+                date = item.date_expense || item.date_savings || item.date_investment || item.date || '';
+                type = item.type || '';
             }
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${title}</td>
+                    <td>${amount}</td>
+                    <td>${date}</td>
+                    <td>${type}</td>
+                    <td><button class="btn btn-danger btn-sm delete-record" data-type="${type.toLowerCase()}" data-id="${item.id}">Delete</button></td>
+                </tr>
+            `;
         }).join('');
+
+        // Show/hide the "Show All" button
+        const showAllButton = document.getElementById(`showAll${tableType.charAt(0).toUpperCase() + tableType.slice(1)}s`);
+        if (showAllButton) {
+            showAllButton.style.display = data.length > 8 ? 'inline-block' : 'none';
+        }
+    } else {
+        console.warn(`Table body for '${tableId}' not found`);
     }
 }
 
@@ -80,13 +80,36 @@ export function setupEventListeners() {
             const recordType = e.target.dataset.type;
             const recordId = e.target.dataset.id;
             if (confirm(`Are you sure you want to delete this ${recordType}?`)) {
-                const result = await deleteRecord(recordType, recordId);
-                if (result.success) {
-                    e.target.closest('tr').remove();
-                    showAlert(`${recordType.charAt(0).toUpperCase() + recordType.slice(1)} deleted successfully!`, 'success');
-                    updateDashboard();
+                try {
+                    const result = await deleteRecord(recordType, recordId);
+                    if (result.success) {
+                        await updateDashboard();  // Refresh all data
+                        // Alert is now shown in deleteRecord function, so we don't need to show it here
+                    } else {
+                        // This else block might not be necessary if deleteRecord always throws on error
+                        showAlert(`Failed to delete ${recordType}: ${result.error}`, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error deleting record:', error);
+                    // Error alert is now shown in deleteRecord function, so we don't need to show it here
                 }
             }
         }
     });
 }
+
+export function updateElement(id, value) {
+    try {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        } else {
+            console.warn(`Element with id '${id}' not found`);
+        }
+    } catch (error) {
+        console.error(`Error updating element with id '${id}':`, error);
+    }
+}
+
+
+

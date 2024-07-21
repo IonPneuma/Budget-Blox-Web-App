@@ -1,5 +1,5 @@
+// utils.js
 export function showAlert(message, type) {
-    let container = document.querySelector('.container') || document.querySelector('main') || document.body;
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
     alertDiv.role = 'alert';
@@ -7,6 +7,17 @@ export function showAlert(message, type) {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
-    container.insertAdjacentElement('afterbegin', alertDiv);
-    setTimeout(() => alertDiv.remove(), 5000);
+
+    // Try to find a suitable container for the alert
+    const container = document.querySelector('.container') || 
+                      document.querySelector('main') || 
+                      document.querySelector('body');
+
+    if (container) {
+        container.insertAdjacentElement('afterbegin', alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+    } else {
+        console.warn('No suitable container found for the alert message');
+        console.log('Alert message:', message);
+    }
 }

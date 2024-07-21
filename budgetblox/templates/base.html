@@ -19,8 +19,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='assets/dist/css/modal.css') }}"
     />
-    <script src="{{ url_for('static', filename='assets/dist/js/modal.js') }}"></script>
-
+    
     <style>
       .bd-placeholder-img {
         font-size: 1.125rem;
@@ -383,19 +382,20 @@
       </div>
     </div>
     <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/dist/js/ajax.js') }}"></script>
-    <script
-      type="module"
-      src="{{ url_for('static', filename='assets/dist/js/main.js') }}"
-    ></script>
+    <script type="module" src="{{ url_for('static', filename='assets/dist/js/utils.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/api.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/tableOperations.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/ajax.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/pagination.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/allRecords.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='assets/dist/js/main.js') }}" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='assets/dist/css/modal.css') }}"
     />
-    <script src="{{ url_for('static', filename='assets/dist/js/modal.js') }}"></script>
-
+    
     <!-- JavaScript to make flash messages auto-dismiss -->
     <script>
       window.setTimeout(function () {

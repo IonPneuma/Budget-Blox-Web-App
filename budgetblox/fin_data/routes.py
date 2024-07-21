@@ -1,4 +1,4 @@
-from flask import Blueprint, app, jsonify, render_template, redirect, url_for, flash, request, current_app, session
+from flask import Blueprint, json, jsonify, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_required, current_user
 from budgetblox import db
 from budgetblox.models import Income, Expense, Investment, Project, Savings
@@ -38,69 +38,84 @@ def cash_income():
     savings_form = SavingsForm()
     investments_form = InvestmentsForm()
     
-    if income_form.validate_on_submit():
-        income = Income(
-            title_income=income_form.title_income.data,
-            amount_income=income_form.amount_income.data,
-            date_income=income_form.date_income.data,
-            project_id=current_project.id
-        )
-        db.session.add(income)
-        db.session.commit()
-        flash('Income added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
-
-    if expense_form.validate_on_submit():
-        expense = Expense(
-            title_expense=expense_form.title_expense.data,
-            amount_expense=expense_form.amount_expense.data,
-            date_expense=expense_form.date_expense.data,
-            project_id=current_project.id
-        )
-        db.session.add(expense)
-        db.session.commit()
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({
-                'success': True,
-                'expense': {
-                    'title_expense': expense.title_expense,
-                    'amount_expense': format_currency(expense.amount_expense, current_project.currency),
-                    'date_expense': expense.date_expense.strftime('%Y-%m-%d')
-                }
-            })
-        flash('Expense added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
-
+    if request.method == 'POST':
+        form_type = request.form.get('form_type')
+        if form_type == 'income' and income_form.validate_on_submit():
+            income = Income(
+                title_income=income_form.title_income.data,
+                amount_income=income_form.amount_income.data,
+                date_income=income_form.date_income.data,
+                project_id=current_project.id
+            )
+            db.session.add(income)
+            db.session.commit()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                updated_incomes = Income.query.filter_by(project_id=current_project.id).order_by(Income.date_income.desc()).all()
+                return jsonify({
+                    'success': True,
+                    'updatedData': [income.to_dict() for income in updated_incomes]
+                })
+            flash('Income added successfully!', 'success')
+            return redirect(url_for('finData.cash_income'))
+        
+        elif form_type == 'expense' and expense_form.validate_on_submit():
+            expense = Expense(
+                title_expense=expense_form.title_expense.data,
+                amount_expense=expense_form.amount_expense.data,
+                date_expense=expense_form.date_expense.data,
+                project_id=current_project.id
+            )
+            db.session.add(expense)
+            db.session.commit()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                updated_expenses = Expense.query.filter_by(project_id=current_project.id).order_by(Expense.date_expense.desc()).all()
+                return jsonify({
+                    'success': True,
+                    'updatedData': [expense.to_dict() for expense in updated_expenses]
+                })
+            flash('Expense added successfully!', 'success')
+            return redirect(url_for('finData.cash_income'))
+        
+        elif form_type == 'savings' and savings_form.validate_on_submit():
+            savings = Savings(
+                title_savings=savings_form.title_savings.data,
+                amount_savings=savings_form.amount_savings.data,
+                date_savings=savings_form.date_savings.data,
+                project_id=current_project.id
+            )
+            db.session.add(savings)
+            db.session.commit()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                updated_savings = Savings.query.filter_by(project_id=current_project.id).order_by(Savings.date_savings.desc()).all()
+                return jsonify({
+                    'success': True,
+                    'updatedData': [saving.to_dict() for saving in updated_savings]
+                })
+            flash('Savings added successfully!', 'success')
+            return redirect(url_for('finData.cash_income'))
+        
+        elif form_type == 'investment' and investments_form.validate_on_submit():
+            investment = Investment(
+                stock=investments_form.stock.data,
+                amount_investment=investments_form.amount_investment.data,
+                date_investment=investments_form.date_investment.data,
+                project_id=current_project.id
+            )
+            db.session.add(investment)
+            db.session.commit()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                updated_investments = Investment.query.filter_by(project_id=current_project.id).order_by(Investment.date_investment.desc()).all()
+                return jsonify({
+                    'success': True,
+                    'updatedData': [investment.to_dict() for investment in updated_investments]
+                })
+            flash('Investment added successfully!', 'success')
+            return redirect(url_for('finData.cash_income'))
     
-    if savings_form.validate_on_submit():
-        savings = Savings(
-            title_savings=savings_form.title_savings.data,
-            amount_savings=savings_form.amount_savings.data,
-            date_savings=savings_form.date_savings.data,
-            project_id=current_project.id
-        )
-        db.session.add(savings)
-        db.session.commit()
-        flash('Savings added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
-
-    if investments_form.validate_on_submit():
-        investment = Investment(
-            stock=investments_form.stock.data,
-            amount_investment=investments_form.amount_investment.data,
-            date_investment=investments_form.date_investment.data,
-            project_id=current_project.id
-        )
-        db.session.add(investment)
-        db.session.commit()
-        flash('Investment added successfully!', 'success')
-        return redirect(url_for('finData.cash_income'))
-    
-    incomes = Income.query.filter_by(project_id=current_project.id).all()
+    incomes = Income.query.filter_by(project_id=current_project.id).order_by(Income.date_income.desc()).all()
     expenses = Expense.query.filter_by(project_id=current_project.id).order_by(Expense.date_expense.desc()).all()
     savings = Savings.query.filter_by(project_id=current_project.id).order_by(Savings.date_savings.desc()).all()
     investments = Investment.query.filter_by(project_id=current_project.id).order_by(Investment.date_investment.desc()).all()
-
 
     return render_template('cashflow.html', 
                            title='Cash', 
@@ -113,7 +128,6 @@ def cash_income():
                            savings=savings,
                            investments=investments,
                            project=current_project)
-
 
 @finData.context_processor
 def inject_project_info():
@@ -346,5 +360,23 @@ def all_allocation_records():
     expenses = Expense.query.filter_by(project_id=current_project.id).all()
     savings = Savings.query.filter_by(project_id=current_project.id).all()
     investments = Investment.query.filter_by(project_id=current_project.id).all()
-    allocations = expenses + savings + investments
+    
+    # Combine all allocations and sort by date
+    allocations = sorted(
+        expenses + savings + investments,
+        key=lambda x: (x.date_expense if hasattr(x, 'date_expense') else 
+                       x.date_savings if hasattr(x, 'date_savings') else 
+                       x.date_investment),
+        reverse=True
+    )
+
     return render_template('all_allocation_records.html', allocations=allocations, project=current_project)
+
+@finData.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@finData.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500

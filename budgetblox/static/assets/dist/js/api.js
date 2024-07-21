@@ -31,7 +31,11 @@ export async function deleteRecord(recordType, recordId) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return await response.json();
+        const result = await response.json();
+        if (result.success) {
+            showAlert(`${recordType.charAt(0).toUpperCase() + recordType.slice(1)} deleted successfully!`, 'success');
+        }
+        return result;
     } catch (error) {
         console.error('Error:', error);
         showAlert(`An error occurred while deleting the ${recordType}: ${error.message}`, 'danger');

@@ -89,3 +89,9 @@ th svg.bi {
    
 
 }
+
+.btn-group .btn-outline-primary.active {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}

@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% block content %}
+
 <h1>All Income Records</h1>
 
 <div class="mb-3">
@@ -6,19 +7,16 @@
     type="text"
     id="searchInput"
     class="form-control"
-    placeholder="Search records..."
+    placeholder="Search..."
   />
 </div>
 
 <div class="mb-3">
-  <label for="dateFrom" class="form-label">From:</label>
-  <input type="date" id="dateFrom" class="form-control" />
-  <label for="dateTo" class="form-label">To:</label>
-  <input type="date" id="dateTo" class="form-control" />
-  <button id="filterDates" class="btn btn-primary mt-2">Filter</button>
+  <input type="date" id="dateFrom" /> to <input type="date" id="dateTo" />
+  <button id="filterDates" class="btn btn-primary">Filter</button>
 </div>
 
-<table id="incomeTable" class="table">
+<table class="table table-striped">
   <thead>
     <tr>
       <th>#</th>
@@ -33,7 +31,7 @@
     <tr>
       <td>{{ loop.index }}</td>
       <td>{{ income.title_income }}</td>
-      <td>{{ income.amount_income }}</td>
+      <td>{{ format_currency(income.amount_income, project.currency) }}</td>
       <td>{{ income.date_income }}</td>
       <td>
         <button
@@ -49,15 +47,21 @@
   </tbody>
 </table>
 
-<div id="pagination" class="mt-3">
-  <!-- Pagination will be added here by JavaScript -->
-</div>
+<div id="pagination" class="mt-3"></div>
 
-<button id="exportCSV" class="btn btn-success mt-3">Export to CSV</button>
-<button id="exportPDF" class="btn btn-success mt-3">Export to PDF</button>
+<button id="exportCSV" class="btn btn-secondary">Export to CSV</button>
+<button id="exportPDF" class="btn btn-secondary">Export to PDF</button>
 
 <script
   type="module"
-  src="{{ url_for('static', filename='js/allRecords.js') }}"
+  src="{{ url_for('static', filename='assets/dist/js/allRecords.js') }}"
 ></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='assets/dist/js/tableOperations.js') }}"
+></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
 {% endblock %}

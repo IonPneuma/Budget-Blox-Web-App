@@ -3,20 +3,32 @@ export function initializeSorting() {
     
     tables.forEach(tableId => {
         const table = document.getElementById(tableId);
-        const headers = table.querySelectorAll('th');
-        
-        headers.forEach((header, index) => {
-            if (index > 0 && index < headers.length - 1) { // Skip the first and last columns
-                header.style.cursor = 'pointer';
-                header.addEventListener('click', () => sortTable(tableId, index));
-            }
-        });
+        if (table) {
+            const headers = table.querySelectorAll('th');
+            
+            headers.forEach((header, index) => {
+                if (index > 0 && index < headers.length - 1) { // Skip the first and last columns
+                    header.style.cursor = 'pointer';
+                    header.addEventListener('click', () => sortTable(tableId, index));
+                }
+            });
+        } else {
+            console.warn(`Table with id '${tableId}' not found`);
+        }
     });
 }
 
 function sortTable(tableId, column) {
     const table = document.getElementById(tableId);
+    if (!table) {
+        console.warn(`Table with id '${tableId}' not found`);
+        return;
+    }
     const tbody = table.querySelector('tbody');
+    if (!tbody) {
+        console.warn(`Tbody not found in table with id '${tableId}'`);
+        return;
+    }
     const rows = Array.from(tbody.querySelectorAll('tr'));
     
     const sortDirection = table.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -39,8 +51,6 @@ function sortTable(tableId, column) {
     
     tbody.innerHTML = '';
     rows.forEach(row => tbody.appendChild(row));
-    
-    updateRowNumbers(table);
 }
 
 function updateRowNumbers(table) {
